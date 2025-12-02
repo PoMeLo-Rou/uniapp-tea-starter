@@ -1,0 +1,48 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "森柠"
+      }
+    },
+    {
+      "path": "pages/order/order",
+      "style": {
+        "navigationBarTitleText": "订单"
+      }
+    },
+    {
+      "path": "pages/mine/mine",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+	}
+  ],
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#023993",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "点单",
+        "iconPath": "/static/tabBar/index.svg",
+        "selectedIconPath": "/static/tabBar/index-selected.svg"
+      },
+      {
+        "pagePath": "pages/order/order",
+        "text": "订单",
+        "iconPath": "/static/tabBar/order.svg",
+        "selectedIconPath": "/static/tabBar/order-selected.svg"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "/static/tabBar/mine.svg",
+        "selectedIconPath": "/static/tabBar/mine-selected.svg"
+      }
+    ]
+  }
+}
