@@ -1,6 +1,6 @@
 <template>
   <view class="container">
-    
+
     <!-- 1. 顶部店铺信息 Header -->
     <view class="header">
       <view class="header-top">
@@ -21,24 +21,15 @@
 
     <!-- 2. 中间点单区域 -->
     <view class="main-content">
-      
+
       <!-- 左侧分类导航 -->
-      <scroll-view 
-        scroll-y 
-        class="left-nav" 
-        :scroll-into-view="'nav-'+activeCategory"
-      >
-        <view 
-          v-for="cat in categories" 
-          :key="cat.id"
-          :id="'nav-'+cat.id"
-          :class="['nav-item', activeCategory === cat.id ? 'active' : '']"
-          @click="scrollToCategory(cat.id)"
-        >
+      <scroll-view scroll-y class="left-nav" :scroll-into-view="'nav-' + activeCategory">
+        <view v-for="cat in categories" :key="cat.id" :id="'nav-' + cat.id"
+          :class="['nav-item', activeCategory === cat.id ? 'active' : '']" @click="scrollToCategory(cat.id)">
           <view v-if="activeCategory === cat.id" class="active-bar"></view>
           <text class="nav-icon">{{ cat.icon }}</text>
           <text class="nav-name">{{ cat.name }}</text>
-          
+
           <!-- 分类角标 -->
           <view v-if="getCategoryCount(cat.id) > 0" class="badge">
             {{ getCategoryCount(cat.id) }}
@@ -49,13 +40,8 @@
       </scroll-view>
 
       <!-- 右侧商品列表 -->
-      <scroll-view 
-        scroll-y 
-        class="right-content" 
-        :scroll-into-view="rightScrollIntoView"
-        @scroll="handleScroll"
-        scroll-with-animation
-      >
+      <scroll-view scroll-y class="right-content" :scroll-into-view="rightScrollIntoView" @scroll="handleScroll"
+        scroll-with-animation>
         <!-- 广告 Banner -->
         <view class="banner-wrapper">
           <!-- src留空，后续请填入您的图片链接 -->
@@ -64,34 +50,30 @@
         </view>
 
         <!-- 商品分类区块 -->
-        <view 
-          v-for="cat in categories" 
-          :key="cat.id" 
-          :id="'category-'+cat.id"
-          class="category-section"
-        >
+        <view v-for="cat in categories" :key="cat.id" :id="'category-' + cat.id" class="category-section">
           <view class="category-title">{{ cat.name }}</view>
-          
+
           <view v-for="product in getProductsByCategory(cat.id)" :key="product.id" class="product-item">
             <!-- 商品图 -->
             <view class="product-img-box">
               <image :src="product.image" class="product-img" mode="aspectFill"></image>
               <view v-if="product.tag" class="tag">{{ product.tag }}</view>
             </view>
-            
+
             <!-- 商品信息 -->
             <view class="product-info">
               <view>
                 <text class="product-name">{{ product.name }}</text>
                 <text class="product-desc">{{ product.desc }}</text>
               </view>
-              
+
               <view class="price-action">
                 <text class="price">¥{{ product.price }}</text>
-                
+
                 <!-- 加减购按钮 -->
                 <view class="action-btn">
-                  <view v-if="cart[product.id]" class="btn-circle outline" @click.stop="updateCart(product.id, -1)">-</view>
+                  <view v-if="cart[product.id]" class="btn-circle outline" @click.stop="updateCart(product.id, -1)">-
+                  </view>
                   <text v-if="cart[product.id]" class="count-num">{{ cart[product.id] }}</text>
                   <view class="btn-circle theme-bg" @click.stop="updateCart(product.id, 1)">+</view>
                 </view>
@@ -99,9 +81,9 @@
             </view>
           </view>
         </view>
-        
+
         <!-- 底部垫高: 购物车高度 + TabBar高度 -->
-         <view style="height: 280rpx;"></view> 
+        <view style="height: 280rpx;"></view>
       </scroll-view>
     </view>
 
@@ -119,11 +101,7 @@
           <text v-else class="empty-text">还没有选购商品</text>
         </view>
 
-        <button 
-          class="pay-btn theme-bg" 
-          :class="{ 'disabled': totalCount === 0 }"
-          @click="checkout"
-        >
+        <button class="pay-btn theme-bg" :class="{ 'disabled': totalCount === 0 }" @click="checkout">
           去结算
         </button>
       </view>
@@ -151,27 +129,31 @@
     </view> -->
 
     <!-- 购物车详情弹窗 -->
-    <view v-if="showCartDetail && totalCount > 0" class="mask" @click="showCartDetail = false">
-      <view class="cart-popup" @click.stop>
-        <view class="cart-header">
-          <text class="title">购物车</text>
-          <text class="clear-btn" @click="clearCart">🗑 清空</text>
-        </view>
-        <scroll-view scroll-y class="cart-list">
-          <view v-for="(count, pid) in cart" :key="pid" class="cart-item">
-            <view class="cart-item-info">
-              <text class="name">{{ getProductById(pid).name }}</text>
-              <text class="price">¥{{ getProductById(pid).price * count }}</text>
-            </view>
-            <view class="action-btn">
-              <view class="btn-circle outline small" @click="updateCart(pid, -1)">-</view>
-              <text class="count-num">{{ count }}</text>
-              <view class="btn-circle theme-bg small" @click="updateCart(pid, 1)">+</view>
-            </view>
+    <transition name="slide-up">
+      <view v-if="showCartDetail && totalCount > 0" class="mask" @click="showCartDetail = false"
+        @touchmove.stop.prevent>
+        <view class="cart-popup" @click.stop>
+          <view class="cart-header">
+            <text class="title">购物车</text>
+            <text class="clear-btn" @click="clearCart">🗑 清空</text>
           </view>
-        </scroll-view>
+          <scroll-view scroll-y class="cart-list">
+            <view v-for="(count, pid) in cart" :key="pid" class="cart-item">
+              <view class="cart-item-info">
+                <text class="name">{{ getProductById(pid).name }}</text>
+                <text class="price">¥{{ getProductById(pid).price * count }}</text>
+              </view>
+              <view class="action-btn">
+                <view class="btn-circle outline small" @click="updateCart(pid, -1)">-</view>
+                <text class="count-num">{{ count }}</text>
+                <view class="btn-circle theme-bg small" @click="updateCart(pid, 1)">+</view>
+              </view>
+            </view>
+          </scroll-view>
+          <view class="safe-area-inset"></view>
+        </view>
       </view>
-    </view>
+    </transition>
 
   </view>
 </template>
@@ -182,7 +164,7 @@ import { ref, computed } from 'vue';
 // --- 数据定义 ---
 const activeCategory = ref(1);
 const rightScrollIntoView = ref('');
-const cart = ref({}); 
+const cart = ref({});
 const showCartDetail = ref(false);
 
 const categories = [

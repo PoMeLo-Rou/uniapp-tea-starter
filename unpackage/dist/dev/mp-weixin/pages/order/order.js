@@ -1,5 +1,9 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+if (!Array) {
+  const _component_transition = common_vendor.resolveComponent("transition");
+  _component_transition();
+}
 const _sfc_main = {
   __name: "order",
   setup(__props) {
@@ -149,8 +153,14 @@ const _sfc_main = {
         }),
         p: common_vendor.o(() => {
         }),
-        q: common_vendor.o(($event) => showCartDetail.value = false)
-      } : {});
+        q: common_vendor.o(($event) => showCartDetail.value = false),
+        r: common_vendor.o(() => {
+        })
+      } : {}, {
+        s: common_vendor.p({
+          name: "slide-up"
+        })
+      });
     };
   }
 };
