@@ -5,7 +5,7 @@
     <view class="header">
       <view class="header-top">
         <view class="shop-info">
-          <text class="shop-name">喜茶 GO (Uni-app店) ></text>
+          <text class="shop-name">沁森柠 (Uni-app店) ></text>
           <text class="distance">📍 距离您 1.2km · 步行约 15 分钟</text>
         </view>
         <view class="toggle-btn">
@@ -159,13 +159,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, getCurrentInstance, nextTick } from 'vue';
 
 // --- 数据定义 ---
 const activeCategory = ref(1);
 const rightScrollIntoView = ref('');
 const cart = ref({});
 const showCartDetail = ref(false);
+const categoryPositions = ref([]); // 右侧每个分类在滚动容器中的位置
 
 const categories = [
   { id: 1, name: '当季限定', icon: '🌟' },
@@ -233,8 +234,20 @@ const scrollToCategory = (catId) => {
 };
 
 const handleScroll = (e) => {
-  // 简单的滚动监听逻辑，实际开发建议使用 IntersectionObserver 或查询节点信息
-  // 这里仅做占位
+  const scrollTop = e.detail.scrollTop || 0;
+  if (!categoryPositions.value.length) return;
+
+  // 从下往上找，找到当前滚动位置对应的分类
+  for (let i = categoryPositions.value.length - 1; i >= 0; i--) {
+    const item = categoryPositions.value[i];
+    // 给一点阈值，避免来回抖动
+    if (scrollTop + 10 >= item.top) {
+      if (activeCategory.value !== item.id) {
+        activeCategory.value = item.id;
+      }
+      break;
+    }
+  }
 };
 
 const checkout = () => {
@@ -244,6 +257,37 @@ const checkout = () => {
     icon: 'none'
   });
 };
+
+// 计算右侧每个分类块在滚动容器内的偏移，用于联动左侧导航
+const calcCategoryPositions = () => {
+  const instance = getCurrentInstance();
+  if (!instance) return;
+
+  nextTick(() => {
+    const query = uni.createSelectorQuery().in(instance.proxy);
+
+    // 先获取右侧 scroll-view 本身的位置
+    query.select('.right-content').boundingClientRect();
+    // 再获取每个分类 section 的位置
+    query.selectAll('.category-section').boundingClientRect();
+
+    query.exec((res) => {
+      const rightRect = res[0];
+      const rects = res[1] || [];
+      if (!rightRect || !rects.length) return;
+
+      categoryPositions.value = rects.map((rect, index) => ({
+        id: categories[index]?.id,
+        // 记录相对 scroll-view 顶部的偏移
+        top: rect.top - rightRect.top,
+      })).filter(item => item.id);
+    });
+  });
+};
+
+onMounted(() => {
+  calcCategoryPositions();
+});
 </script>
 
 <!-- 在这里引入外部样式，注意加上 lang="scss" -->

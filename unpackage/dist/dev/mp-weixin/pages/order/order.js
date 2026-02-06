@@ -11,6 +11,7 @@ const _sfc_main = {
     const rightScrollIntoView = common_vendor.ref("");
     const cart = common_vendor.ref({});
     const showCartDetail = common_vendor.ref(false);
+    const categoryPositions = common_vendor.ref([]);
     const categories = [
       { id: 1, name: "当季限定", icon: "🌟" },
       { id: 2, name: "人气必喝", icon: "🔥" },
@@ -68,6 +69,18 @@ const _sfc_main = {
       rightScrollIntoView.value = "category-" + catId;
     };
     const handleScroll = (e) => {
+      const scrollTop = e.detail.scrollTop || 0;
+      if (!categoryPositions.value.length)
+        return;
+      for (let i = categoryPositions.value.length - 1; i >= 0; i--) {
+        const item = categoryPositions.value[i];
+        if (scrollTop + 10 >= item.top) {
+          if (activeCategory.value !== item.id) {
+            activeCategory.value = item.id;
+          }
+          break;
+        }
+      }
     };
     const checkout = () => {
       if (totalCount.value === 0)
@@ -77,6 +90,33 @@ const _sfc_main = {
         icon: "none"
       });
     };
+    const calcCategoryPositions = () => {
+      const instance = common_vendor.getCurrentInstance();
+      if (!instance)
+        return;
+      common_vendor.nextTick$1(() => {
+        const query = common_vendor.index.createSelectorQuery().in(instance.proxy);
+        query.select(".right-content").boundingClientRect();
+        query.selectAll(".category-section").boundingClientRect();
+        query.exec((res) => {
+          const rightRect = res[0];
+          const rects = res[1] || [];
+          if (!rightRect || !rects.length)
+            return;
+          categoryPositions.value = rects.map((rect, index) => {
+            var _a;
+            return {
+              id: (_a = categories[index]) == null ? void 0 : _a.id,
+              // 记录相对 scroll-view 顶部的偏移
+              top: rect.top - rightRect.top
+            };
+          }).filter((item) => item.id);
+        });
+      });
+    };
+    common_vendor.onMounted(() => {
+      calcCategoryPositions();
+    });
     return (_ctx, _cache) => {
       return common_vendor.e({
         a: common_vendor.f(categories, (cat, k0, i0) => {
