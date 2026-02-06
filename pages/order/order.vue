@@ -101,7 +101,7 @@
         </view>
         
         <!-- 底部垫高: 购物车高度 + TabBar高度 -->
-        <view style="height: 280rpx;"></view>
+         <view style="height: 280rpx;"></view> 
       </scroll-view>
     </view>
 
@@ -130,7 +130,7 @@
     </view>
 
     <!-- 4. 底部自定义 TabBar -->
-    <view class="custom-tab-bar">
+    <!-- <view class="custom-tab-bar">
       <view class="tab-item">
         <text class="tab-icon">🏠</text>
         <text class="tab-text">首页</text>
@@ -148,7 +148,7 @@
         <text class="tab-text">我的</text>
       </view>
       <view class="safe-area"></view>
-    </view>
+    </view> -->
 
     <!-- 购物车详情弹窗 -->
     <view v-if="showCartDetail && totalCount > 0" class="mask" @click="showCartDetail = false">
