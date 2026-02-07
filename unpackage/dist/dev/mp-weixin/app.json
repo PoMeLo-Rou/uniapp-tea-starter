@@ -13,20 +13,20 @@
       {
         "pagePath": "pages/index/index",
         "text": "点单",
-        "iconPath": "/static/tabBar/index.png",
-        "selectedIconPath": "/static/tabBar/index-selected.png"
+        "iconPath": "/static/index.png",
+        "selectedIconPath": "/static/index-selected.png"
       },
       {
         "pagePath": "pages/order/order",
         "text": "订单",
-        "iconPath": "/static/tabBar/order.png",
-        "selectedIconPath": "/static/tabBar/order-selected.png"
+        "iconPath": "/static/order.png",
+        "selectedIconPath": "/static/order-selected.png"
       },
       {
         "pagePath": "pages/mine/mine",
         "text": "我的",
-        "iconPath": "/static/tabBar/mine.png",
-        "selectedIconPath": "/static/tabBar/mine-selected.png"
+        "iconPath": "/static/mine.png",
+        "selectedIconPath": "/static/mine-selected.png"
       }
     ]
   },

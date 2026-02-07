@@ -1,5 +1,13 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+if (!Array) {
+  const _easycom_uni_card2 = common_vendor.resolveComponent("uni-card");
+  _easycom_uni_card2();
+}
+const _easycom_uni_card = () => "../../node-modules/@dcloudio/uni-ui/lib/uni-card/uni-card.js";
+if (!Math) {
+  _easycom_uni_card();
+}
 const _sfc_main = {
   __name: "index",
   setup(__props) {
@@ -51,9 +59,16 @@ const _sfc_main = {
           return {
             a: i
           };
+        }),
+        l: common_vendor.p({
+          title: "基础卡片",
+          ["sub-title"]: "副标题",
+          extra: "额外信息",
+          thumbnail: "https://qiniu-web-assets.dcloud.net.cn/unidoc/zh/unicloudlogo.png"
         })
       });
     };
   }
 };
 wx.createPage(_sfc_main);
+//# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/index/index.js.map

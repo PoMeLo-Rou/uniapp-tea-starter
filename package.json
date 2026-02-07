@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@dcloudio/uni-ui": "^1.5.11",
+    "pnpm": "^10.28.2"
+  },
+  "devDependencies": {
+    "@types/wechat-miniprogram": "^3.4.10",
+    "@uni-helper/uni-app-types": "^1.0.0-alpha.7"
+  }
+}

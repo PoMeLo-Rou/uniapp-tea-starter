@@ -29,7 +29,6 @@
   position: relative;
 }
 .banner-box {
-  padding: 30rpx 30rpx 0;
   position: relative;
   z-index: 1;
   /* 等分的小灰线段（覆盖在灰线之上，方便看出分段） */
@@ -37,9 +36,8 @@
 }
 .banner-box .banner-swiper {
   height: 350rpx;
-  border-radius: 20rpx;
+  border-radius: 20rpx 20rpx 0 0;
   overflow: hidden;
-  box-shadow: 0 10rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 .banner-box .banner-swiper .banner-img {
   width: 100%;
@@ -200,4 +198,7 @@
   font-weight: bold;
   margin-top: 10rpx;
   display: block;
+}
+.card-wrap {
+  margin: 0 30rpx 40rpx;
 }

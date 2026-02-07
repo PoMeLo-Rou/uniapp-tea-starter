@@ -13,8 +13,11 @@ app.$mount()
 
 // #ifdef VUE3
 import { createSSRApp } from 'vue'
+import { showLoading, hideLoading } from '@/store/loading'
 export function createApp() {
   const app = createSSRApp(App)
+  app.config.globalProperties.$showLoading = showLoading
+  app.config.globalProperties.$hideLoading = hideLoading
   return {
     app
   }

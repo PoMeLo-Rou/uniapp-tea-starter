@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const common_assets = require("../../common/assets.js");
 if (!Array) {
   const _component_transition = common_vendor.resolveComponent("transition");
   _component_transition();
@@ -38,15 +39,6 @@ const _sfc_main = {
         return total + (p ? p.price * count : 0);
       }, 0);
     });
-    const getCategoryCount = (catId) => {
-      const catProducts = getProductsByCategory(catId);
-      let count = 0;
-      catProducts.forEach((p) => {
-        if (cart.value[p.id])
-          count += cart.value[p.id];
-      });
-      return count;
-    };
     const updateCart = (productId, delta) => {
       const current = cart.value[productId] || 0;
       const next = current + delta;
@@ -125,14 +117,10 @@ const _sfc_main = {
           }, activeCategory.value === cat.id ? {} : {}, {
             b: common_vendor.t(cat.icon),
             c: common_vendor.t(cat.name),
-            d: getCategoryCount(cat.id) > 0
-          }, getCategoryCount(cat.id) > 0 ? {
-            e: common_vendor.t(getCategoryCount(cat.id))
-          } : {}, {
-            f: cat.id,
-            g: "nav-" + cat.id,
-            h: common_vendor.n(activeCategory.value === cat.id ? "active" : ""),
-            i: common_vendor.o(($event) => scrollToCategory(cat.id), cat.id)
+            d: cat.id,
+            e: "nav-" + cat.id,
+            f: common_vendor.n(activeCategory.value === cat.id ? "active" : ""),
+            g: common_vendor.o(($event) => scrollToCategory(cat.id), cat.id)
           });
         }),
         b: "nav-" + activeCategory.value,
@@ -169,19 +157,16 @@ const _sfc_main = {
         e: common_vendor.o(handleScroll),
         f: totalCount.value > 0
       }, totalCount.value > 0 ? {
-        g: common_vendor.t(totalCount.value)
+        g: common_assets._imports_0,
+        h: common_vendor.t(totalCount.value),
+        i: common_vendor.o(toggleCartDetail),
+        j: common_vendor.t(totalPrice.value),
+        k: common_vendor.o(checkout)
       } : {}, {
-        h: common_vendor.o(toggleCartDetail),
-        i: totalCount.value > 0
-      }, totalCount.value > 0 ? {
-        j: common_vendor.t(totalPrice.value)
-      } : {}, {
-        k: totalCount.value === 0 ? 1 : "",
-        l: common_vendor.o(checkout),
-        m: showCartDetail.value && totalCount.value > 0
+        l: showCartDetail.value && totalCount.value > 0
       }, showCartDetail.value && totalCount.value > 0 ? {
-        n: common_vendor.o(clearCart),
-        o: common_vendor.f(cart.value, (count, pid, i0) => {
+        m: common_vendor.o(clearCart),
+        n: common_vendor.f(cart.value, (count, pid, i0) => {
           return {
             a: common_vendor.t(getProductById(pid).name),
             b: common_vendor.t(getProductById(pid).price * count),
@@ -191,13 +176,13 @@ const _sfc_main = {
             f: pid
           };
         }),
-        p: common_vendor.o(() => {
+        o: common_vendor.o(() => {
         }),
-        q: common_vendor.o(($event) => showCartDetail.value = false),
-        r: common_vendor.o(() => {
+        p: common_vendor.o(($event) => showCartDetail.value = false),
+        q: common_vendor.o(() => {
         })
       } : {}, {
-        s: common_vendor.p({
+        r: common_vendor.p({
           name: "slide-up"
         })
       });
@@ -205,3 +190,4 @@ const _sfc_main = {
   }
 };
 wx.createPage(_sfc_main);
+//# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/order/order.js.map

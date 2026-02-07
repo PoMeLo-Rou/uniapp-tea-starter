@@ -29,11 +29,6 @@
           <view v-if="activeCategory === cat.id" class="active-bar"></view>
           <text class="nav-icon">{{ cat.icon }}</text>
           <text class="nav-name">{{ cat.name }}</text>
-
-          <!-- 分类角标 -->
-          <view v-if="getCategoryCount(cat.id) > 0" class="badge">
-            {{ getCategoryCount(cat.id) }}
-          </view>
         </view>
         <!-- 底部占位 -->
         <view style="height: 100rpx;"></view>
@@ -87,23 +82,21 @@
       </scroll-view>
     </view>
 
-    <!-- 3. 底部购物车栏 (位置调整到 TabBar 之上) -->
-    <view class="cart-bar-wrapper">
+    <!-- 3. 底部购物车栏：有加购时才显示 -->
+    <view v-if="totalCount > 0" class="cart-bar-wrapper">
       <view class="cart-bar">
-        <!-- 购物车图标 -->
         <view class="cart-icon-wrapper" @click="toggleCartDetail">
-          <view class="cart-icon theme-bg">👜</view>
-          <view v-if="totalCount > 0" class="total-badge">{{ totalCount }}</view>
+          <view class="cart-icon theme-bg">
+            <image src="/static/cart.png" class="cart-icon-img" mode="aspectFit"></image>
+          </view>
+          <view class="total-badge">{{ totalCount }}</view>
         </view>
 
         <view class="cart-price">
-          <text v-if="totalCount > 0" class="total-price">¥{{ totalPrice }}</text>
-          <text v-else class="empty-text">还没有选购商品</text>
+          <text class="total-price">¥{{ totalPrice }}</text>
         </view>
 
-        <button class="pay-btn theme-bg" :class="{ 'disabled': totalCount === 0 }" @click="checkout">
-          去结算
-        </button>
+        <button class="pay-btn theme-bg" @click="checkout">去结算</button>
       </view>
     </view>
 
