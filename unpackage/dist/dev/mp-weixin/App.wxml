@@ -1,1 +1,0 @@
-<view><loading-mask wx:if="{{a}}" u-i="5a638e08-0" bind:__l="__l" u-p="{{a}}"/></view>

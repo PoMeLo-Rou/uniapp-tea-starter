@@ -1,5 +1,10 @@
 {
   "navigationBarTitleText": "订单",
   "navigationStyle": "custom",
-  "usingComponents": {}
+  "usingComponents": {
+    "order-header": "./components/orderHeader",
+    "cart-popup": "./components/cartPopup",
+    "product-detail-popup": "./components/ProductDetailPopup",
+    "custom-tab-bar": "../../components/custom-tab-bar"
+  }
 }

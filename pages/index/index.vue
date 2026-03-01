@@ -1,111 +1,144 @@
 <template>
 	<view class="container">
-		<view class="banner-box">
-			<swiper class="banner-swiper" circular autoplay interval="5000" :current="current" :indicator-dots="false"
-				@change="onSwiperChange">
-				<swiper-item v-for="(item, index) in banners" :key="index">
-					<image class="banner-img" :src="item" mode="aspectFill"></image>
-				</swiper-item>
-			</swiper>
+		<bannerBox :banners="bannerData" />
 
-			<!-- 自定义线型指示器：灰色底线 + 等分小线段 + 可滑动蓝色条 -->
-			<view class="banner-indicator-line" v-if="banners.length > 1">
-				<view class="line-bg"></view>
-				<view class="line-segments">
-					<view v-for="(item, index) in banners" :key="index" class="line-segment"
-						:style="{ width: (100 / banners.length) + '%' }"></view>
-				</view>
-				<view class="line-active" :style="{
-					width: (100 / banners.length) + '%',
-					left: (100 / banners.length * current) + '%'
-				}"></view>
-			</view>
-		</view>
 
-		<view class="member-bar">
-			<view class="member-info">
-				<text class="welcome">你好，茶友</text>
-				<view class="level">
-					<text class="icon">💎</text>
-					<text>尊享会员</text>
-				</view>
-			</view>
-			<view class="points">
-				<text class="num">128</text>
-				<text class="label">积分</text>
-			</view>
-		</view>
+		<memberCard :points="128" level="尊享会员" />
 
-		<view class="main-actions">
-			<view class="action-card" @click="goToOrder">
-				<image class="action-icon" src="https://img.icons8.com/color/96/tea-cup.png" mode="aspectFit"></image>
-				<view class="action-text">
-					<text class="title">到店自取</text>
-					<text class="desc">下单免排队</text>
-				</view>
-			</view>
-
-			<view class="divider"></view>
-
-			<view class="action-card" @click="goToOrder">
-				<image class="action-icon" src="https://img.icons8.com/color/96/delivery-man.png" mode="aspectFit">
-				</image>
-				<view class="action-text">
-					<text class="title">外送</text>
-					<text class="desc">送货上门</text>
-				</view>
-			</view>
-		</view>
-
-		<view class="featured-section">
+		<!-- 猜你喜欢 - 个性化推荐滑块 -->
+		<view class="recommend-section">
 			<view class="section-header">
-				<text class="section-title">精选推荐</text>
+				<text class="title">猜你喜欢</text>
+				<text class="subtitle">根据您的口味推荐</text>
 			</view>
-			<scroll-view scroll-x class="featured-list">
-				<view class="featured-item" v-for="i in 3" :key="i">
-					<image class="featured-img" src="" mode="aspectFill"></image>
-					<text class="name">人气多肉葡萄</text>
-					<text class="price">¥29起</text>
+			<scroll-view class="recommend-scroll" scroll-x="true" show-scrollbar="false">
+				<view class="recommend-item" v-for="(item, index) in recommendList" :key="item.id || index"
+					@click="onRecommendClick(item)">
+					<image :src="item.image" mode="aspectFill" class="prod-img"></image>
+					<view class="prod-info">
+						<text class="prod-name">{{ item.name }}</text>
+						<text class="prod-price">￥{{ item.price }}</text>
+					</view>
+					<button class="add-btn" size="mini" @click.stop="onRecommendClick(item)">+</button>
 				</view>
 			</scroll-view>
 		</view>
 
-		<!-- 卡片放在 container 内，才能随页面一起显示和滚动 -->
-		<view class="card-wrap">
-			<uni-card title="基础卡片" sub-title="副标题" extra="额外信息"
-				thumbnail="https://qiniu-web-assets.dcloud.net.cn/unidoc/zh/unicloudlogo.png">
-				<text>这是一个带头像和双标题的基础卡片，此示例展示了一个完整的卡片。</text>
-			</uni-card>
-		</view>
+		<mainAction @click="goToOrder" />
+		<CustomTabBar current-path="/pages/index/index" />
 	</view>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import bannerBox from './components/bannerBox.vue';
+import memberCard from './components/memberCard.vue';
+import mainAction from './components/mainAction.vue';
+import CustomTabBar from '@/components/custom-tab-bar.vue';
 
-// 模拟轮播图数据（5 张幻灯片）
-const banners = ref([
-	'https://images.unsplash.com/photo-1544787210-2211d44b565a?w=800', // 幻灯片 1
-	'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=800', // 幻灯片 2
-	'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800', // 幻灯片 3
-	'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800', // 幻灯片 4
-	'https://images.unsplash.com/photo-1504753793650-d4a2b783c15e?w=800'  // 幻灯片 5
+// 轮播图数据（空则使用 bannerBox 内部默认图）
+const bannerData = ref([
+	'https://images.unsplash.com/photo-1544787210-2211d44b565a?w=800',
+	'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=800',
 ]);
 
-const current = ref(0);
-const onSwiperChange = (e) => {
-	current.value = e.detail.current || 0;
-};
+// 静态模拟数据（后期通过后端接口获取），id 与点餐页商品对应便于跳转后打开规格弹窗
+const recommendList = ref([
+	{ id: 101, name: '多肉葡萄', price: 28, image: '/static/logo.png' },
+	{ id: 102, name: '芝芝茗茶', price: 19, image: '/static/logo.png' },
+	{ id: 201, name: '烤黑糖波波', price: 22, image: '/static/logo.png' },
+]);
 
 // 跳转到点单页 (因为是 TabBar 页面，需使用 switchTab)
 const goToOrder = () => {
 	uni.switchTab({
-		url: '/pages/order/order'
+		url: '/pages/order/order',
+	});
+};
+
+// 点击推荐位：进入点餐页并打开该商品的规格弹窗
+const onRecommendClick = (item) => {
+	uni.switchTab({
+		url: '/pages/order/order',
+		success: () => {
+			setTimeout(() => {
+				uni.$emit('openSpec', { productId: item.id });
+			}, 300);
+		},
 	});
 };
 </script>
 
-<!-- 在这里引入外部样式，注意加上 lang="scss" -->
 <style lang="scss">
-@import "@/assets/index.scss";
+@import '@/uni.scss';
+
+.container {
+	min-height: 100vh;
+	background-color: #f8f8f8;
+	padding-bottom: 150rpx;
+}
+
+.recommend-section {
+	padding: 20rpx;
+
+	.section-header {
+		margin-bottom: 20rpx;
+
+		.title {
+			font-size: 32rpx;
+			font-weight: bold;
+			color: #333;
+		}
+
+		.subtitle {
+			font-size: 24rpx;
+			color: #999;
+			margin-left: 15rpx;
+		}
+	}
+
+	.recommend-scroll {
+		white-space: nowrap;
+
+		.recommend-item {
+			display: inline-block;
+			width: 240rpx;
+			margin-right: 20rpx;
+			background: #fff;
+			border-radius: 12rpx;
+			padding: 15rpx;
+			box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+
+			.prod-img {
+				width: 100%;
+				height: 200rpx;
+				border-radius: 8rpx;
+			}
+
+			.prod-name {
+				font-size: 26rpx;
+				display: block;
+				margin: 10rpx 0;
+			}
+
+			.prod-price {
+				color: $uni-color-primary;
+				font-weight: bold;
+			}
+
+			.add-btn {
+				float: right;
+				background: $uni-color-primary;
+				color: #fff;
+				border-radius: 50%;
+				padding: 0 15rpx;
+				border: none;
+
+				&::after {
+					border: none;
+				}
+			}
+		}
+	}
+}
 </style>

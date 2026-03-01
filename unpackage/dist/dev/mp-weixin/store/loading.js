@@ -20,6 +20,5 @@ function hideLoading() {
   loadingState.visible = false;
 }
 exports.hideLoading = hideLoading;
-exports.loadingState = loadingState;
 exports.showLoading = showLoading;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/store/loading.js.map

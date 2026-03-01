@@ -254,13 +254,13 @@ $theme-color: #023993;
   font-weight: bold;
 }
 
-/* 3. 悬浮购物车栏 */
+/* 3. 悬浮购物车栏：紧贴自定义 TabBar 上方 */
 .cart-bar-wrapper {
   position: fixed;
-  // bottom: calc(100rpx + env(safe-area-inset-bottom));
-  bottom: 0rpx;
   left: 0;
   right: 0;
+  bottom: calc(100rpx + constant(safe-area-inset-bottom));
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
   z-index: 100;
   background-color: transparent;
   pointer-events: none;
@@ -336,51 +336,7 @@ $theme-color: #023993;
   color: #fff;
 }
 
-/* 4. 自定义底部 TabBar */
-.custom-tab-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: calc(100rpx + env(safe-area-inset-bottom));
-  background-color: #fff;
-  border-top: 1rpx solid #eee;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  padding-top: 10rpx;
-  z-index: 90;
-}
-.tab-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100rpx;
-}
-.tab-icon {
-  font-size: 40rpx;
-  margin-bottom: 4rpx;
-  color: #ccc;
-}
-.tab-text {
-  font-size: 20rpx;
-  color: #999;
-}
-/* 使用变量 */
-.tab-item.active .tab-icon,
-.tab-item.active .tab-text {
-  color: $theme-color;
-  font-weight: bold;
-}
-.safe-area {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: env(safe-area-inset-bottom);
-  background-color: #fff;
-}
+/* 底部 TabBar 已使用 components/custom-tab-bar.vue，不再在此写样式 */
 
 /* 购物车弹窗 */
 .mask {

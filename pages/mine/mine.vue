@@ -63,10 +63,13 @@
 	  </view>
 	  
 	  <button class="logout-btn">退出登录</button>
+		<CustomTabBar current-path="/pages/mine/mine" />
 	</view>
   </template>
   
   <script setup>
+  import CustomTabBar from '@/components/custom-tab-bar.vue';
+
   const handleMenuClick = (type) => {
 	uni.showToast({
 	  title: `点击了 ${type} 功能`,

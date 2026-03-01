@@ -28,9 +28,16 @@
         "navigationBarTitleText": "我的",
 		"navigationStyle": "custom"
       }
+	},
+	{
+		"path": "pages/order/components/ProductDetailPopup/ProductDetailPopup",
+		"style": {
+			"navigationBarTitleText": ""
+		}
 	}
   ],
   "tabBar": {
+    "custom": true,
     "color": "#999999",
     "selectedColor": "#023993",
     "backgroundColor": "#FFFFFF",

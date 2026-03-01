@@ -2,6 +2,9 @@
   "navigationBarTitleText": "森柠",
   "navigationStyle": "custom",
   "usingComponents": {
-    "uni-card": "../../node-modules/@dcloudio/uni-ui/lib/uni-card/uni-card"
+    "banner-box": "./components/bannerBox",
+    "member-card": "./components/memberCard",
+    "main-action": "./components/mainAction",
+    "custom-tab-bar": "../../components/custom-tab-bar"
   }
 }

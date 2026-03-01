@@ -1,10 +1,13 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
-if (!Array) {
-  const _component_transition = common_vendor.resolveComponent("transition");
-  _component_transition();
+if (!Math) {
+  (orderHeader + CustomTabBar + cartPopup + ProductDetailPopup)();
 }
+const orderHeader = () => "./components/orderHeader.js";
+const cartPopup = () => "./components/cartPopup.js";
+const ProductDetailPopup = () => "./components/ProductDetailPopup.js";
+const CustomTabBar = () => "../../components/custom-tab-bar.js";
 const _sfc_main = {
   __name: "order",
   setup(__props) {
@@ -14,21 +17,101 @@ const _sfc_main = {
     const showCartDetail = common_vendor.ref(false);
     const categoryPositions = common_vendor.ref([]);
     const categories = [
-      { id: 1, name: "当季限定", icon: "🌟" },
-      { id: 2, name: "人气必喝", icon: "🔥" },
-      { id: 3, name: "清爽果茶", icon: "🍇" },
-      { id: 4, name: "浓郁奶茶", icon: "🥤" },
-      { id: 5, name: "纯茶系列", icon: "🍵" },
-      { id: 6, name: "热麦面包", icon: "🥯" }
+      {
+        id: 1,
+        name: "当季限定",
+        icon: "🌟"
+      },
+      {
+        id: 2,
+        name: "人气必喝",
+        icon: "🔥"
+      },
+      {
+        id: 3,
+        name: "清爽果茶",
+        icon: "🍇"
+      },
+      {
+        id: 4,
+        name: "浓郁奶茶",
+        icon: "🥤"
+      },
+      {
+        id: 5,
+        name: "纯茶系列",
+        icon: "🍵"
+      },
+      {
+        id: 6,
+        name: "热麦面包",
+        icon: "🥯"
+      }
     ];
     const products = [
-      { id: 101, categoryId: 1, name: "多肉葡萄冻", price: 29, desc: "鲜剥葡萄肉，搭配清新绿茶底", image: "", tag: "人气TOP" },
-      { id: 102, categoryId: 1, name: "酷黑莓桑", price: 19, desc: "桑葚与草莓的奇妙碰撞", image: "", tag: "新品" },
-      { id: 201, categoryId: 2, name: "烤黑糖波波牛乳", price: 21, desc: "焦香黑糖，Q弹波波", image: "", tag: "推荐" },
-      { id: 202, categoryId: 2, name: "芝芝莓莓", price: 28, desc: "精选草莓，搭配浓郁芝士奶盖", image: "", tag: null },
-      { id: 301, categoryId: 3, name: "满杯红柚", price: 23, desc: "满满红柚果肉，清新解腻", image: "", tag: null },
-      { id: 401, categoryId: 4, name: "雪山纯奶", price: 18, desc: "纯净高原奶源", image: "", tag: null },
-      { id: 501, categoryId: 5, name: "金凤茶王", price: 16, desc: "独家定制乌龙茶底", image: "", tag: null }
+      {
+        id: 101,
+        categoryId: 1,
+        name: "多肉葡萄冻",
+        price: 29,
+        desc: "鲜剥葡萄肉，搭配清新绿茶底",
+        image: "",
+        tag: "人气TOP"
+      },
+      {
+        id: 102,
+        categoryId: 1,
+        name: "酷黑莓桑",
+        price: 19,
+        desc: "桑葚与草莓的奇妙碰撞",
+        image: "",
+        tag: "新品"
+      },
+      {
+        id: 201,
+        categoryId: 2,
+        name: "烤黑糖波波牛乳",
+        price: 21,
+        desc: "焦香黑糖，Q弹波波",
+        image: "",
+        tag: "推荐"
+      },
+      {
+        id: 202,
+        categoryId: 2,
+        name: "芝芝莓莓",
+        price: 28,
+        desc: "精选草莓，搭配浓郁芝士奶盖",
+        image: "",
+        tag: null
+      },
+      {
+        id: 301,
+        categoryId: 3,
+        name: "满杯红柚",
+        price: 23,
+        desc: "满满红柚果肉，清新解腻",
+        image: "",
+        tag: null
+      },
+      {
+        id: 401,
+        categoryId: 4,
+        name: "雪山纯奶",
+        price: 18,
+        desc: "纯净高原奶源",
+        image: "",
+        tag: null
+      },
+      {
+        id: 501,
+        categoryId: 5,
+        name: "金凤茶王",
+        price: 16,
+        desc: "独家定制乌龙茶底",
+        image: "",
+        tag: null
+      }
     ];
     const getProductsByCategory = (catId) => products.filter((p) => p.categoryId === catId);
     const getProductById = (pid) => products.find((p) => p.id == pid);
@@ -55,6 +138,9 @@ const _sfc_main = {
     const toggleCartDetail = () => {
       if (totalCount.value > 0)
         showCartDetail.value = !showCartDetail.value;
+    };
+    const setShowCartDetail = (v) => {
+      showCartDetail.value = !!v;
     };
     const scrollToCategory = (catId) => {
       activeCategory.value = catId;
@@ -108,7 +194,27 @@ const _sfc_main = {
     };
     common_vendor.onMounted(() => {
       calcCategoryPositions();
+      common_vendor.index.$on("openSpec", onOpenSpecFromHome);
     });
+    common_vendor.onUnmounted(() => {
+      common_vendor.index.$off("openSpec", onOpenSpecFromHome);
+    });
+    const onOpenSpecFromHome = ({ productId }) => {
+      const product = getProductById(productId);
+      if (product)
+        openSpecPopup(product);
+    };
+    const detailPopup = common_vendor.ref(null);
+    common_vendor.ref([
+      { id: "TEA123456", statusText: "制作中", step: 1 }
+    ]);
+    const openSpecPopup = (product) => {
+      var _a;
+      (_a = detailPopup.value) == null ? void 0 : _a.open(product);
+    };
+    const onAddToCart = (data) => {
+      updateCart(data.id, 1);
+    };
     return (_ctx, _cache) => {
       return common_vendor.e({
         a: common_vendor.f(categories, (cat, k0, i0) => {
@@ -145,7 +251,7 @@ const _sfc_main = {
               }, cart.value[product.id] ? {
                 j: common_vendor.t(cart.value[product.id])
               } : {}, {
-                k: common_vendor.o(($event) => updateCart(product.id, 1), product.id),
+                k: common_vendor.o(($event) => openSpecPopup(product), product.id),
                 l: product.id
               });
             }),
@@ -163,28 +269,21 @@ const _sfc_main = {
         j: common_vendor.t(totalPrice.value),
         k: common_vendor.o(checkout)
       } : {}, {
-        l: showCartDetail.value && totalCount.value > 0
-      }, showCartDetail.value && totalCount.value > 0 ? {
-        m: common_vendor.o(clearCart),
-        n: common_vendor.f(cart.value, (count, pid, i0) => {
-          return {
-            a: common_vendor.t(getProductById(pid).name),
-            b: common_vendor.t(getProductById(pid).price * count),
-            c: common_vendor.o(($event) => updateCart(pid, -1), pid),
-            d: common_vendor.t(count),
-            e: common_vendor.o(($event) => updateCart(pid, 1), pid),
-            f: pid
-          };
+        l: common_vendor.p({
+          ["current-path"]: "/pages/order/order"
         }),
-        o: common_vendor.o(() => {
+        m: common_vendor.o(setShowCartDetail),
+        n: common_vendor.o(updateCart),
+        o: common_vendor.o(clearCart),
+        p: common_vendor.p({
+          show: showCartDetail.value,
+          items: cart.value,
+          getProduct: getProductById
         }),
-        p: common_vendor.o(($event) => showCartDetail.value = false),
-        q: common_vendor.o(() => {
-        })
-      } : {}, {
-        r: common_vendor.p({
-          name: "slide-up"
-        })
+        q: common_vendor.sr(detailPopup, "22f0866e-3", {
+          "k": "detailPopup"
+        }),
+        r: common_vendor.o(onAddToCart)
       });
     };
   }

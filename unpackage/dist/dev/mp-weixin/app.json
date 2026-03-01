@@ -2,9 +2,11 @@
   "pages": [
     "pages/index/index",
     "pages/order/order",
-    "pages/mine/mine"
+    "pages/mine/mine",
+    "pages/order/components/ProductDetailPopup/ProductDetailPopup"
   ],
   "tabBar": {
+    "custom": true,
     "color": "#999999",
     "selectedColor": "#023993",
     "backgroundColor": "#FFFFFF",

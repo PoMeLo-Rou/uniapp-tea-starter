@@ -1,5 +1,9 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+if (!Math) {
+  CustomTabBar();
+}
+const CustomTabBar = () => "../../components/custom-tab-bar.js";
 const _sfc_main = {
   __name: "mine",
   setup(__props) {
@@ -14,7 +18,10 @@ const _sfc_main = {
         a: common_vendor.o(($event) => handleMenuClick("order")),
         b: common_vendor.o(($event) => handleMenuClick("address")),
         c: common_vendor.o(($event) => handleMenuClick("service")),
-        d: common_vendor.o(($event) => handleMenuClick("about"))
+        d: common_vendor.o(($event) => handleMenuClick("about")),
+        e: common_vendor.p({
+          ["current-path"]: "/pages/mine/mine"
+        })
       };
     };
   }
