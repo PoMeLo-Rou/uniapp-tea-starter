@@ -15,6 +15,7 @@ const _sfc_main = {
     }
   },
   setup(__props) {
+    const { safeAreaInsets } = common_vendor.index.getSystemInfoSync();
     const current = common_vendor.ref(0);
     const onSwiperChange = (e) => {
       current.value = e.detail.current;
@@ -33,7 +34,9 @@ const _sfc_main = {
       }, __props.banners.length > 1 ? {
         e: 100 / __props.banners.length + "%",
         f: `translateX(${current.value * 100}%)`
-      } : {});
+      } : {}, {
+        g: common_vendor.unref(safeAreaInsets).top + "px"
+      });
     };
   }
 };

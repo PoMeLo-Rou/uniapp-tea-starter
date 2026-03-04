@@ -6,8 +6,9 @@ if (!Math) {
 }
 const orderHeader = () => "./components/orderHeader.js";
 const cartPopup = () => "./components/cartPopup.js";
-const ProductDetailPopup = () => "./components/ProductDetailPopup.js";
+const ProductDetailPopup = () => "./components/ProductDetailPopup2.js";
 const CustomTabBar = () => "../../components/custom-tab-bar.js";
+const API_BASE = "http://localhost:3000";
 const _sfc_main = {
   __name: "order",
   setup(__props) {
@@ -16,119 +17,64 @@ const _sfc_main = {
     const cart = common_vendor.ref({});
     const showCartDetail = common_vendor.ref(false);
     const categoryPositions = common_vendor.ref([]);
-    const categories = [
-      {
-        id: 1,
-        name: "当季限定",
-        icon: "🌟"
-      },
-      {
-        id: 2,
-        name: "人气必喝",
-        icon: "🔥"
-      },
-      {
-        id: 3,
-        name: "清爽果茶",
-        icon: "🍇"
-      },
-      {
-        id: 4,
-        name: "浓郁奶茶",
-        icon: "🥤"
-      },
-      {
-        id: 5,
-        name: "纯茶系列",
-        icon: "🍵"
-      },
-      {
-        id: 6,
-        name: "热麦面包",
-        icon: "🥯"
-      }
-    ];
-    const products = [
-      {
-        id: 101,
-        categoryId: 1,
-        name: "多肉葡萄冻",
-        price: 29,
-        desc: "鲜剥葡萄肉，搭配清新绿茶底",
-        image: "",
-        tag: "人气TOP"
-      },
-      {
-        id: 102,
-        categoryId: 1,
-        name: "酷黑莓桑",
-        price: 19,
-        desc: "桑葚与草莓的奇妙碰撞",
-        image: "",
-        tag: "新品"
-      },
-      {
-        id: 201,
-        categoryId: 2,
-        name: "烤黑糖波波牛乳",
-        price: 21,
-        desc: "焦香黑糖，Q弹波波",
-        image: "",
-        tag: "推荐"
-      },
-      {
-        id: 202,
-        categoryId: 2,
-        name: "芝芝莓莓",
-        price: 28,
-        desc: "精选草莓，搭配浓郁芝士奶盖",
-        image: "",
-        tag: null
-      },
-      {
-        id: 301,
-        categoryId: 3,
-        name: "满杯红柚",
-        price: 23,
-        desc: "满满红柚果肉，清新解腻",
-        image: "",
-        tag: null
-      },
-      {
-        id: 401,
-        categoryId: 4,
-        name: "雪山纯奶",
-        price: 18,
-        desc: "纯净高原奶源",
-        image: "",
-        tag: null
-      },
-      {
-        id: 501,
-        categoryId: 5,
-        name: "金凤茶王",
-        price: 16,
-        desc: "独家定制乌龙茶底",
-        image: "",
-        tag: null
-      }
-    ];
-    const getProductsByCategory = (catId) => products.filter((p) => p.categoryId === catId);
-    const getProductById = (pid) => products.find((p) => p.id == pid);
-    const totalCount = common_vendor.computed(() => Object.values(cart.value).reduce((a, b) => a + b, 0));
-    const totalPrice = common_vendor.computed(() => {
-      return Object.entries(cart.value).reduce((total, [pid, count]) => {
-        const p = getProductById(pid);
-        return total + (p ? p.price * count : 0);
+    const isClickScrolling = common_vendor.ref(false);
+    const categories = common_vendor.ref([]);
+    const products = common_vendor.ref([]);
+    const getProductsByCategory = (catId) => products.value.filter((p) => p.category_id === catId);
+    const getProductById = (pid) => products.value.find((p) => p.id == pid);
+    const buildCartKey = (id, specs = {}) => {
+      return `${id}__${specs.sweet || ""}__${specs.ice || ""}`;
+    };
+    const totalCount = common_vendor.computed(() => {
+      return Object.values(cart.value).reduce((sum, item) => {
+        return sum + ((item == null ? void 0 : item.count) || 0);
       }, 0);
     });
-    const updateCart = (productId, delta) => {
-      const current = cart.value[productId] || 0;
-      const next = current + delta;
+    const totalPrice = common_vendor.computed(() => {
+      return Object.values(cart.value).reduce((total, item) => {
+        if (!item)
+          return total;
+        const p = getProductById(item.id);
+        return total + (p ? p.price * (item.count || 0) : 0);
+      }, 0);
+    });
+    const getProductCount = (productId) => {
+      let total = 0;
+      Object.values(cart.value).forEach((item) => {
+        if (item && item.id === productId) {
+          total += item.count || 0;
+        }
+      });
+      return total;
+    };
+    const updateCart = (keyOrProductId, delta) => {
+      const itemByKey = cart.value[keyOrProductId];
+      if (itemByKey) {
+        const next2 = (itemByKey.count || 0) + delta;
+        if (next2 <= 0) {
+          delete cart.value[keyOrProductId];
+        } else {
+          cart.value[keyOrProductId] = {
+            ...itemByKey,
+            count: next2
+          };
+        }
+        return;
+      }
+      const entries = Object.entries(cart.value).filter(
+        ([, item2]) => item2 && item2.id === keyOrProductId
+      );
+      if (!entries.length)
+        return;
+      const [targetKey, item] = entries[0];
+      const next = (item.count || 0) + delta;
       if (next <= 0) {
-        delete cart.value[productId];
+        delete cart.value[targetKey];
       } else {
-        cart.value[productId] = next;
+        cart.value[targetKey] = {
+          ...item,
+          count: next
+        };
       }
     };
     const clearCart = () => {
@@ -145,8 +91,14 @@ const _sfc_main = {
     const scrollToCategory = (catId) => {
       activeCategory.value = catId;
       rightScrollIntoView.value = "category-" + catId;
+      isClickScrolling.value = true;
+      setTimeout(() => {
+        isClickScrolling.value = false;
+      }, 400);
     };
     const handleScroll = (e) => {
+      if (isClickScrolling.value)
+        return;
       const scrollTop = e.detail.scrollTop || 0;
       if (!categoryPositions.value.length)
         return;
@@ -166,6 +118,34 @@ const _sfc_main = {
       common_vendor.index.showToast({
         title: "结算功能演示",
         icon: "none"
+      });
+    };
+    const fetchCategories = () => {
+      return new Promise((resolve, reject) => {
+        common_vendor.index.request({
+          url: `${API_BASE}/api/categories`,
+          success: (res) => {
+            const list = res.data || [];
+            categories.value = list;
+            if (list.length > 0) {
+              activeCategory.value = list[0].id;
+            }
+            resolve();
+          },
+          fail: reject
+        });
+      });
+    };
+    const fetchProducts = () => {
+      return new Promise((resolve, reject) => {
+        common_vendor.index.request({
+          url: `${API_BASE}/api/products`,
+          success: (res) => {
+            products.value = res.data || [];
+            resolve();
+          },
+          fail: reject
+        });
       });
     };
     const calcCategoryPositions = () => {
@@ -192,7 +172,9 @@ const _sfc_main = {
         });
       });
     };
-    common_vendor.onMounted(() => {
+    common_vendor.onMounted(async () => {
+      await fetchCategories();
+      await fetchProducts();
       calcCategoryPositions();
       common_vendor.index.$on("openSpec", onOpenSpecFromHome);
     });
@@ -213,11 +195,18 @@ const _sfc_main = {
       (_a = detailPopup.value) == null ? void 0 : _a.open(product);
     };
     const onAddToCart = (data) => {
-      updateCart(data.id, 1);
+      const key = buildCartKey(data.id, data.specs || {});
+      const existing = cart.value[key];
+      const nextCount = ((existing == null ? void 0 : existing.count) || 0) + 1;
+      cart.value[key] = {
+        id: data.id,
+        specs: data.specs || {},
+        count: nextCount
+      };
     };
     return (_ctx, _cache) => {
       return common_vendor.e({
-        a: common_vendor.f(categories, (cat, k0, i0) => {
+        a: common_vendor.f(categories.value, (cat, k0, i0) => {
           return common_vendor.e({
             a: activeCategory.value === cat.id
           }, activeCategory.value === cat.id ? {} : {}, {
@@ -230,7 +219,7 @@ const _sfc_main = {
           });
         }),
         b: "nav-" + activeCategory.value,
-        c: common_vendor.f(categories, (cat, k0, i0) => {
+        c: common_vendor.f(categories.value, (cat, k0, i0) => {
           return {
             a: common_vendor.t(cat.name),
             b: common_vendor.f(getProductsByCategory(cat.id), (product, k1, i1) => {
@@ -243,16 +232,12 @@ const _sfc_main = {
                 d: common_vendor.t(product.name),
                 e: common_vendor.t(product.desc),
                 f: common_vendor.t(product.price),
-                g: cart.value[product.id]
-              }, cart.value[product.id] ? {
-                h: common_vendor.o(($event) => updateCart(product.id, -1), product.id)
+                g: getProductCount(product.id)
+              }, getProductCount(product.id) ? {
+                h: common_vendor.t(getProductCount(product.id))
               } : {}, {
-                i: cart.value[product.id]
-              }, cart.value[product.id] ? {
-                j: common_vendor.t(cart.value[product.id])
-              } : {}, {
-                k: common_vendor.o(($event) => openSpecPopup(product), product.id),
-                l: product.id
+                i: common_vendor.o(($event) => openSpecPopup(product), product.id),
+                j: product.id
               });
             }),
             c: cat.id,
@@ -280,7 +265,7 @@ const _sfc_main = {
           items: cart.value,
           getProduct: getProductById
         }),
-        q: common_vendor.sr(detailPopup, "22f0866e-3", {
+        q: common_vendor.sr(detailPopup, "93207a4f-3", {
           "k": "detailPopup"
         }),
         r: common_vendor.o(onAddToCart)
@@ -288,5 +273,6 @@ const _sfc_main = {
     };
   }
 };
-wx.createPage(_sfc_main);
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__scopeId", "data-v-93207a4f"]]);
+wx.createPage(MiniProgramPage);
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/order/order.js.map

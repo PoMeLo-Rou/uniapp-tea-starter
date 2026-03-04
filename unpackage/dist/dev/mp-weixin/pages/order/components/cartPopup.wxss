@@ -87,6 +87,15 @@
   padding: 30rpx 0;
   border-bottom: 1rpx solid #f8f8f8;
 }
+.cart-item-info.data-v-3b58c82a {
+  display: flex;
+  flex-direction: column;
+}
+.cart-item-info .spec.data-v-3b58c82a {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #999;
+}
 .btn-circle.data-v-3b58c82a {
   width: 44rpx;
   height: 44rpx;

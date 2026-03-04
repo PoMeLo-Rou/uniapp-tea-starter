@@ -8,15 +8,16 @@
           <text class="clear-btn" @click="onClear">🗑 清空</text>
         </view>
         <scroll-view scroll-y class="cart-list">
-          <view v-for="item in cartList" :key="item.id" class="cart-item">
+          <view v-for="item in cartList" :key="item.key" class="cart-item">
             <view class="cart-item-info">
               <text class="name">{{ item.name }}</text>
+              <text v-if="item.specText" class="spec">{{ item.specText }}</text>
               <text class="price">¥{{ item.price * item.count }}</text>
             </view>
             <view class="action-btn">
-              <view class="btn-circle outline small" @click="emit('update', item.id, -1)">-</view>
+              <view class="btn-circle outline small" @click="emit('update', item.key, -1)">-</view>
               <text class="count-num">{{ item.count }}</text>
-              <view class="btn-circle theme-bg small" @click="emit('update', item.id, 1)">+</view>
+              <view class="btn-circle theme-bg small" @click="emit('update', item.key, 1)">+</view>
             </view>
           </view>
         </scroll-view>
@@ -41,9 +42,22 @@ const popupRef = ref(null);
 const cartList = computed(() => {
   const list = [];
   const entries = Object.entries(props.items || {});
-  entries.forEach(([pid, count]) => {
-    const p = props.getProduct ? props.getProduct(pid) : null;
-    if (p) list.push({ id: p.id, name: p.name, price: p.price, count });
+  entries.forEach(([key, raw]) => {
+    if (!raw) return;
+    const p = props.getProduct ? props.getProduct(raw.id) : null;
+    if (!p) return;
+    const count = raw.count ?? 0;
+    const specs = raw.specs || {};
+    const specText = [specs.sweet, specs.ice].filter(Boolean).join(' / ');
+    list.push({
+      key,
+      id: raw.id,
+      name: p.name,
+      price: p.price,
+      count,
+      specs,
+      specText,
+    });
   });
   return list;
 });
@@ -107,6 +121,15 @@ const onClear = () => {
   align-items: center;
   padding: 30rpx 0;
   border-bottom: 1rpx solid #f8f8f8;
+}
+.cart-item-info {
+  display: flex;
+  flex-direction: column;
+}
+.cart-item-info .spec {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #999;
 }
 .btn-circle {
   width: 44rpx; height: 44rpx; border-radius: 50%;

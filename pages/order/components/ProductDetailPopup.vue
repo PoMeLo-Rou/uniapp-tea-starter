@@ -1,11 +1,12 @@
-uni-color-primary<template>
+<template>
 	<view class="product-detail-popup-root">
 		<uni-popup ref="popupRef" type="bottom" background-color="#fff" @maskClick="close">
 			<view class="spec-container">
 				<view class="spec-header">
-					<text class="spec-title">选择规格 - {{ selectedProd.name }}</text>
+					<text class="spec-title">{{ selectedProd.name }}</text>
 				</view>
 
+				<!-- 固定的甜度选项 -->
 				<view class="spec-group">
 					<text class="label">甜度</text>
 					<view class="tags">
@@ -20,8 +21,9 @@ uni-color-primary<template>
 					</view>
 				</view>
 
+				<!-- 固定的冰量/温度选项 -->
 				<view class="spec-group">
-					<text class="label">冰量</text>
+					<text class="label">冰量 / 温度</text>
 					<view class="tags">
 						<view
 							v-for="(i, idx) in iceOptions"
@@ -47,15 +49,19 @@ const emit = defineEmits(['confirm']);
 
 const popupRef = ref(null);
 const selectedProd = reactive({ id: null, name: '', price: 0 });
+
+const sweetOptions = ref(['常规', '七分糖', '五分糖', '不加糖']);
+const iceOptions = ref(['多冰', '正常冰', '少冰', '去冰', '常温', '热饮']);
+
 const currentSweet = ref('常规');
 const currentIce = ref('正常冰');
 
-// 用 ref 包裹，确保小程序端模板能正确拿到列表并渲染
-const sweetOptions = ref(['常规', '七分糖', '五分糖', '不加糖']);
-const iceOptions = ref(['正常冰', '少冰', '去冰', '温热']);
-
-const setSweet = (v) => { currentSweet.value = v; };
-const setIce = (v) => { currentIce.value = v; };
+const setSweet = (v) => {
+	currentSweet.value = v;
+};
+const setIce = (v) => {
+	currentIce.value = v;
+};
 
 const open = (product) => {
 	if (!product) return;

@@ -3,7 +3,7 @@
     "pages/index/index",
     "pages/order/order",
     "pages/mine/mine",
-    "pages/order/components/ProductDetailPopup/ProductDetailPopup"
+    "pages/order/components/ProductDetailPopup"
   ],
   "tabBar": {
     "custom": true,

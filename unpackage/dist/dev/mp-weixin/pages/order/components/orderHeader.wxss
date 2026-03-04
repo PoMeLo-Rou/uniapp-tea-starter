@@ -23,62 +23,80 @@
 /* 垂直间距 */
 /* 透明度 */
 /* 文章场景相关 */
-/* 直接引用你 order.scss 中的相关部分 */
 .header.data-v-f6ccaf73 {
   background-color: #fff;
-  padding: 20rpx 30rpx;
+  padding: 16rpx 30rpx 24rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
   z-index: 10;
 }
-.header-top.data-v-f6ccaf73 {
+.mode-toggle.data-v-f6ccaf73 {
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
   display: flex;
-  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.mode-item.data-v-f6ccaf73 {
+  padding: 4rpx 6rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+.mode-item.active.data-v-f6ccaf73 {
+  color: #ffffff;
+  font-weight: 600;
+}
+.mode-item.active text.data-v-f6ccaf73 {
+  color: #023993;
+}
+.mode-sep.data-v-f6ccaf73 {
+  margin: 0 12rpx;
+  color: #ccc;
+}
+.pickup-block.data-v-f6ccaf73 {
+  margin-top: 6rpx;
+}
+.pickup-title-row.data-v-f6ccaf73 {
+  display: flex;
   align-items: center;
 }
-.shop-name.data-v-f6ccaf73 {
+.pickup-title.data-v-f6ccaf73 {
   font-size: 34rpx;
   font-weight: bold;
+  color: #000;
 }
-.distance.data-v-f6ccaf73 {
-  font-size: 24rpx;
-  color: #999;
+.pickup-arrow.data-v-f6ccaf73 {
+  margin-left: 8rpx;
+  font-size: 26rpx;
+  color: #000;
+}
+.pickup-sub.data-v-f6ccaf73 {
   margin-top: 8rpx;
-  display: block;
-}
-.toggle-btn.data-v-f6ccaf73 {
-  display: flex;
-  background-color: #f5f5f5;
-  border-radius: 30rpx;
-  padding: 4rpx;
-}
-.toggle-btn .btn.data-v-f6ccaf73 {
-  padding: 6rpx 24rpx;
   font-size: 24rpx;
-  border-radius: 30rpx;
-  color: #666;
+  color: #e0e0e0;
 }
-.toggle-btn .btn.active.data-v-f6ccaf73 {
-  background-color: #023993;
-  /* 这里写死或引用你的变量 */
-  color: #fff;
+.delivery-block.data-v-f6ccaf73 {
+  margin-top: 6rpx;
 }
-.notice.data-v-f6ccaf73 {
+.delivery-row.data-v-f6ccaf73 {
   display: flex;
   align-items: center;
-  margin-top: 20rpx;
-  background-color: #fffaf0;
-  padding: 10rpx 20rpx;
-  border-radius: 8rpx;
 }
-.notice-tag.data-v-f6ccaf73 {
-  font-size: 20rpx;
-  color: #ff9900;
-  border: 1rpx solid #ff9900;
-  padding: 2rpx 8rpx;
-  margin-right: 12rpx;
-  border-radius: 4rpx;
+.loc-icon.data-v-f6ccaf73 {
+  font-size: 30rpx;
+  margin-right: 8rpx;
+  color: #ffd666;
 }
-.notice-text.data-v-f6ccaf73 {
+.addr-main.data-v-f6ccaf73 {
+  font-size: 30rpx;
+  color: #000;
+}
+.store-line.data-v-f6ccaf73 {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #e0e0e0;
+}
+.slogan.data-v-f6ccaf73 {
+  margin-top: 10rpx;
   font-size: 22rpx;
-  color: #666;
+  color: #c0c0c0;
 }

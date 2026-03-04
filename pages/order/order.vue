@@ -84,11 +84,18 @@
 
 								<!-- 加减购按钮 -->
 								<view class="action-btn">
-									<view v-if="cart[product.id]" class="btn-circle outline"
-										@click.stop="updateCart(product.id, -1)">-
+									<view
+										class="spec-btn theme-bg"
+										@click.stop="openSpecPopup(product)"
+									>
+										<text class="spec-btn-text">选规格</text>
+										<view
+											v-if="getProductCount(product.id)"
+											class="spec-badge"
+										>
+											{{ getProductCount(product.id) }}
+										</view>
 									</view>
-									<text v-if="cart[product.id]" class="count-num">{{ cart[product.id] }}</text>
-									<view class="btn-circle theme-bg" @click.stop="openSpecPopup(product)">+</view>
 								</view>
 							</view>
 						</view>
@@ -171,139 +178,94 @@
 	import ProductDetailPopup from './components/ProductDetailPopup.vue';
 	import CustomTabBar from '@/components/custom-tab-bar.vue';
 
+	const API_BASE = 'http://localhost:3000'; // 后端接口地址
+
 	// --- 数据定义 ---
 	const activeCategory = ref(1);
 	const rightScrollIntoView = ref('');
 	const cart = ref({});
 	const showCartDetail = ref(false);
 	const categoryPositions = ref([]); // 右侧每个分类在滚动容器中的位置
+	const isClickScrolling = ref(false); // 标记是否为点击左侧分类触发的滚动
 
-	const categories = [{
-			id: 1,
-			name: '当季限定',
-			icon: '🌟'
-		},
-		{
-			id: 2,
-			name: '人气必喝',
-			icon: '🔥'
-		},
-		{
-			id: 3,
-			name: '清爽果茶',
-			icon: '🍇'
-		},
-		{
-			id: 4,
-			name: '浓郁奶茶',
-			icon: '🥤'
-		},
-		{
-			id: 5,
-			name: '纯茶系列',
-			icon: '🍵'
-		},
-		{
-			id: 6,
-			name: '热麦面包',
-			icon: '🥯'
-		},
-	];
-
-	const products = [{
-			id: 101,
-			categoryId: 1,
-			name: '多肉葡萄冻',
-			price: 29,
-			desc: '鲜剥葡萄肉，搭配清新绿茶底',
-			image: '',
-			tag: '人气TOP'
-		},
-		{
-			id: 102,
-			categoryId: 1,
-			name: '酷黑莓桑',
-			price: 19,
-			desc: '桑葚与草莓的奇妙碰撞',
-			image: '',
-			tag: '新品'
-		},
-		{
-			id: 201,
-			categoryId: 2,
-			name: '烤黑糖波波牛乳',
-			price: 21,
-			desc: '焦香黑糖，Q弹波波',
-			image: '',
-			tag: '推荐'
-		},
-		{
-			id: 202,
-			categoryId: 2,
-			name: '芝芝莓莓',
-			price: 28,
-			desc: '精选草莓，搭配浓郁芝士奶盖',
-			image: '',
-			tag: null
-		},
-		{
-			id: 301,
-			categoryId: 3,
-			name: '满杯红柚',
-			price: 23,
-			desc: '满满红柚果肉，清新解腻',
-			image: '',
-			tag: null
-		},
-		{
-			id: 401,
-			categoryId: 4,
-			name: '雪山纯奶',
-			price: 18,
-			desc: '纯净高原奶源',
-			image: '',
-			tag: null
-		},
-		{
-			id: 501,
-			categoryId: 5,
-			name: '金凤茶王',
-			price: 16,
-			desc: '独家定制乌龙茶底',
-			image: '',
-			tag: null
-		},
-	];
+	const categories = ref([]);
+	const products = ref([]);
 
 	// --- 计算属性 ---
-	const getProductsByCategory = (catId) => products.filter(p => p.categoryId === catId);
-	const getProductById = (pid) => products.find(p => p.id == pid);
+	const getProductsByCategory = (catId) => products.value.filter(p => p.category_id === catId);
+	const getProductById = (pid) => products.value.find(p => p.id == pid);
 
-	const totalCount = computed(() => Object.values(cart.value).reduce((a, b) => a + b, 0));
+	const buildCartKey = (id, specs = {}) => {
+		return `${id}__${specs.sweet || ''}__${specs.ice || ''}`;
+	};
+
+	const totalCount = computed(() => {
+		return Object.values(cart.value).reduce((sum, item) => {
+			return sum + (item?.count || 0);
+		}, 0);
+	});
+
 	const totalPrice = computed(() => {
-		return Object.entries(cart.value).reduce((total, [pid, count]) => {
-			const p = getProductById(pid);
-			return total + (p ? p.price * count : 0);
+		return Object.values(cart.value).reduce((total, item) => {
+			if (!item) return total;
+			const p = getProductById(item.id);
+			return total + (p ? p.price * (item.count || 0) : 0);
 		}, 0);
 	});
 
 	const getCategoryCount = (catId) => {
 		const catProducts = getProductsByCategory(catId);
+		const ids = catProducts.map(p => p.id);
 		let count = 0;
-		catProducts.forEach(p => {
-			if (cart.value[p.id]) count += cart.value[p.id];
+		Object.values(cart.value).forEach((item) => {
+			if (item && ids.includes(item.id)) {
+				count += (item.count || 0);
+			}
 		});
 		return count;
 	};
 
+	const getProductCount = (productId) => {
+		let total = 0;
+		Object.values(cart.value).forEach((item) => {
+			if (item && item.id === productId) {
+				total += (item.count || 0);
+			}
+		});
+		return total;
+	};
+
 	// --- 方法 ---
-	const updateCart = (productId, delta) => {
-		const current = cart.value[productId] || 0;
-		const next = current + delta;
+	const updateCart = (keyOrProductId, delta) => {
+		// 1. 优先按 key 精确匹配（来自购物车弹窗）
+		const itemByKey = cart.value[keyOrProductId];
+		if (itemByKey) {
+			const next = (itemByKey.count || 0) + delta;
+			if (next <= 0) {
+				delete cart.value[keyOrProductId];
+			} else {
+				cart.value[keyOrProductId] = {
+					...itemByKey,
+					count: next,
+				};
+			}
+			return;
+		}
+
+		// 2. 按商品 id 聚合匹配（来自商品列表减号）
+		const entries = Object.entries(cart.value).filter(
+			([, item]) => item && item.id === keyOrProductId,
+		);
+		if (!entries.length) return;
+		const [targetKey, item] = entries[0];
+		const next = (item.count || 0) + delta;
 		if (next <= 0) {
-			delete cart.value[productId]; // Vue 3 reactivity handles this
+			delete cart.value[targetKey];
 		} else {
-			cart.value[productId] = next;
+			cart.value[targetKey] = {
+				...item,
+				count: next,
+			};
 		}
 	};
 
@@ -322,9 +284,14 @@
 	const scrollToCategory = (catId) => {
 		activeCategory.value = catId;
 		rightScrollIntoView.value = 'category-' + catId;
+		isClickScrolling.value = true;
+		setTimeout(() => {
+			isClickScrolling.value = false;
+		}, 400);
 	};
 
 	const handleScroll = (e) => {
+		if (isClickScrolling.value) return;
 		const scrollTop = e.detail.scrollTop || 0;
 		if (!categoryPositions.value.length) return;
 
@@ -350,6 +317,36 @@
 	};
 
 	// 计算右侧每个分类块在滚动容器内的偏移，用于联动左侧导航
+	const fetchCategories = () => {
+		return new Promise((resolve, reject) => {
+			uni.request({
+				url: `${API_BASE}/api/categories`,
+				success: (res) => {
+					const list = res.data || [];
+					categories.value = list;
+					if (list.length > 0) {
+						activeCategory.value = list[0].id;
+					}
+					resolve();
+				},
+				fail: reject,
+			});
+		});
+	};
+
+	const fetchProducts = () => {
+		return new Promise((resolve, reject) => {
+			uni.request({
+				url: `${API_BASE}/api/products`,
+				success: (res) => {
+					products.value = res.data || [];
+					resolve();
+				},
+				fail: reject,
+			});
+		});
+	};
+
 	const calcCategoryPositions = () => {
 		const instance = getCurrentInstance();
 		if (!instance) return;
@@ -376,7 +373,9 @@
 		});
 	};
 
-	onMounted(() => {
+	onMounted(async () => {
+		await fetchCategories();
+		await fetchProducts();
 		calcCategoryPositions();
 		uni.$on('openSpec', onOpenSpecFromHome);
 	});
@@ -411,11 +410,449 @@
 
 	// 确认加入购物车（来自规格弹窗）
 	const onAddToCart = (data) => {
-		updateCart(data.id, 1);
+		const key = buildCartKey(data.id, data.specs || {});
+		const existing = cart.value[key];
+		const nextCount = (existing?.count || 0) + 1;
+		cart.value[key] = {
+			id: data.id,
+			specs: data.specs || {},
+			count: nextCount,
+		};
 	};
 </script>
 
-<!-- 在这里引入外部样式，注意加上 lang="scss" -->
-<style lang="scss">
-	@import "@/assets/order.scss";
+<style lang="scss" scoped>
+/* --- 变量定义 (必须写在最前面) --- */
+$theme-color: #023993;
+
+/* 基础容器 */
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  color: #334;
+}
+
+/* 1. 顶部 Header */
+.header {
+  background-color: #fff;
+  padding: 20rpx 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
+  z-index: 10;
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.shop-name {
+  font-size: 34rpx;
+  font-weight: bold;
+}
+.distance {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+  display: block;
+}
+.toggle-btn {
+  display: flex;
+  background-color: #f5f5f5;
+  border-radius: 30rpx;
+  padding: 4rpx;
+}
+.toggle-btn .btn {
+  padding: 6rpx 24rpx;
+  font-size: 24rpx;
+  border-radius: 26rpx;
+  color: #666;
+}
+/* 使用变量 */
+.toggle-btn .btn.active {
+  background-color: $theme-color;
+  color: #fff;
+}
+
+.notice {
+  margin-top: 20rpx;
+  background-color: #f0f6ff; /* 浅蓝色背景适配主题色 */
+  padding: 10rpx 20rpx;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+}
+/* 使用变量 */
+.notice-tag {
+  background-color: $theme-color;
+  color: #fff;
+  font-size: 20rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  margin-right: 10rpx;
+}
+.notice-text {
+  font-size: 24rpx;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 2. 中间内容区 */
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 左侧导航 */
+.left-nav {
+  width: 180rpx;
+  background-color: #f8f8f8;
+  height: 100%;
+}
+.nav-item {
+  height: 140rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 24rpx;
+  color: #666;
+  position: relative;
+}
+/* 使用变量 */
+.nav-item.active {
+  background-color: #fff;
+  color: $theme-color;
+  font-weight: bold;
+}
+/* 使用变量 */
+.active-bar {
+  position: absolute;
+  left: 0;
+  top: 40rpx;
+  bottom: 40rpx;
+  width: 8rpx;
+  background-color: $theme-color;
+  border-radius: 0 4rpx 4rpx 0;
+}
+.nav-icon {
+  font-size: 36rpx;
+  margin-bottom: 8rpx;
+}
+.badge {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  background-color: #ff4d4f;
+  color: #fff;
+  font-size: 20rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 32rpx;
+}
+
+/* 右侧内容 */
+.right-content {
+  flex: 1;
+  background-color: #fff;
+  height: 100%;
+}
+.banner-wrapper {
+  padding: 20rpx;
+  position: relative;
+}
+.banner-img {
+  width: 100%;
+  height: 240rpx;
+  border-radius: 12rpx;
+  background-color: #eee;
+}
+.banner-text {
+  position: absolute;
+  left: 30rpx;
+  bottom: 30rpx;
+  color: #fff;
+  font-weight: bold;
+  font-size: 28rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.3);
+}
+
+.category-section {
+  padding-bottom: 20rpx;
+}
+.category-title {
+  padding: 20rpx 30rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  background-color: #fff;
+}
+
+.product-item {
+  display: flex;
+  padding: 20rpx 30rpx;
+}
+.product-img-box {
+  width: 180rpx;
+  height: 180rpx;
+  margin-right: 20rpx;
+  position: relative;
+}
+.product-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+  background-color: #f5f5f5;
+}
+.tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #ffc107;
+  font-size: 20rpx;
+  padding: 4rpx 10rpx;
+  border-bottom-right-radius: 12rpx;
+  font-weight: bold;
+}
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.product-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+.product-desc {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 10rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.price-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.price {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333;
+}
+.action-btn {
+  display: flex;
+  align-items: center;
+}
+.spec-btn {
+  position: relative;
+  min-width: 140rpx;
+  height: 64rpx;
+  padding: 0;
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  color: #fff;
+}
+/* 使用变量：与主题色保持一致 */
+.spec-btn.theme-bg {
+  background-color: $theme-color;
+  color: #fff;
+}
+.spec-btn-text {
+  font-size: 26rpx;
+}
+.spec-badge {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background-color: $theme-color;
+  color: #fff;
+  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-circle {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  padding-bottom: 4rpx;
+}
+/* 使用变量 */
+.btn-circle.theme-bg {
+  background-color: $theme-color;
+  color: #fff;
+}
+.btn-circle.outline {
+  border: 1px solid #ddd;
+  color: #666;
+  background-color: #fff;
+}
+.count-num {
+  margin: 0 20rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* 3. 悬浮购物车栏：紧贴自定义 TabBar 上方 */
+.cart-bar-wrapper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(100rpx + constant(safe-area-inset-bottom));
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
+  z-index: 100;
+  background-color: transparent;
+  pointer-events: none;
+}
+.cart-bar {
+  pointer-events: auto;
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 30rpx;
+  // margin: 0 20rpx;
+  background-color: #fff;
+  // border-radius: 50rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.15);
+  position: relative;
+}
+.cart-icon-wrapper {
+  position: relative;
+  margin-right: 20rpx;
+}
+.cart-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.cart-icon-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  padding: 10rpx;
+}
+
+.total-badge {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  transform: translate(-50%, -50%);
+  color: $theme-color;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+.cart-price {
+  flex: 1;
+}
+.total-price {
+  font-size: 36rpx;
+  font-weight: bold;
+}
+.empty-text {
+  font-size: 24rpx;
+  color: #999;
+}
+.pay-btn {
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  padding: 0 40rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  margin: 0;
+}
+/* 使用变量 */
+.pay-btn.theme-bg {
+  background-color: $theme-color;
+  color: #fff;
+}
+.pay-btn.disabled {
+  background-color: #ccc;
+  color: #fff;
+}
+
+/* 底部 TabBar 已使用 components/custom-tab-bar.vue，不再在此写样式 */
+
+/* 购物车弹窗 */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 80;
+}
+.cart-popup {
+  position: absolute;
+  bottom: 0px;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-radius: 20rpx 20rpx 0 0;
+  padding: 30rpx 30rpx 100rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.1);
+}
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+.cart-header .title {
+  font-weight: bold;
+  font-size: 30rpx;
+}
+.cart-header .clear-btn {
+  font-size: 24rpx;
+  color: #999;
+}
+.cart-list {
+  max-height: 500rpx;
+}
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+.cart-item-info .name {
+  font-size: 28rpx;
+  font-weight: bold;
+  display: block;
+}
+.cart-item-info .price {
+  font-size: 28rpx;
+  font-weight: bold;
+  margin-top: 6rpx;
+  display: block;
+}
+.btn-circle.small {
+  width: 40rpx;
+  height: 40rpx;
+  font-size: 30rpx;
+}
 </style>

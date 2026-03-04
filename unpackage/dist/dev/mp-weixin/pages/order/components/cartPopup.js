@@ -23,10 +23,24 @@ const _sfc_main = {
     const cartList = common_vendor.computed(() => {
       const list = [];
       const entries = Object.entries(props.items || {});
-      entries.forEach(([pid, count]) => {
-        const p = props.getProduct ? props.getProduct(pid) : null;
-        if (p)
-          list.push({ id: p.id, name: p.name, price: p.price, count });
+      entries.forEach(([key, raw]) => {
+        if (!raw)
+          return;
+        const p = props.getProduct ? props.getProduct(raw.id) : null;
+        if (!p)
+          return;
+        const count = raw.count ?? 0;
+        const specs = raw.specs || {};
+        const specText = [specs.sweet, specs.ice].filter(Boolean).join(" / ");
+        list.push({
+          key,
+          id: raw.id,
+          name: p.name,
+          price: p.price,
+          count,
+          specs,
+          specText
+        });
       });
       return list;
     });
@@ -56,14 +70,18 @@ const _sfc_main = {
       return common_vendor.e({
         a: common_vendor.o(onClear),
         b: common_vendor.f(cartList.value, (item, k0, i0) => {
-          return {
+          return common_vendor.e({
             a: common_vendor.t(item.name),
-            b: common_vendor.t(item.price * item.count),
-            c: common_vendor.o(($event) => emit("update", item.id, -1), item.id),
-            d: common_vendor.t(item.count),
-            e: common_vendor.o(($event) => emit("update", item.id, 1), item.id),
-            f: item.id
-          };
+            b: item.specText
+          }, item.specText ? {
+            c: common_vendor.t(item.specText)
+          } : {}, {
+            d: common_vendor.t(item.price * item.count),
+            e: common_vendor.o(($event) => emit("update", item.key, -1), item.key),
+            f: common_vendor.t(item.count),
+            g: common_vendor.o(($event) => emit("update", item.key, 1), item.key),
+            h: item.key
+          });
         }),
         c: cartList.value.length === 0
       }, cartList.value.length === 0 ? {} : {}, {

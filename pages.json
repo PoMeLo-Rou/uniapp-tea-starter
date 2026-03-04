@@ -30,7 +30,7 @@
       }
 	},
 	{
-		"path": "pages/order/components/ProductDetailPopup/ProductDetailPopup",
+		"path": "pages/order/components/ProductDetailPopup",
 		"style": {
 			"navigationBarTitleText": ""
 		}

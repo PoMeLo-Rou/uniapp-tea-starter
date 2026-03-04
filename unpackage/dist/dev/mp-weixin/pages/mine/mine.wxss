@@ -23,38 +23,38 @@
 /* 垂直间距 */
 /* 透明度 */
 /* 文章场景相关 */
-.container {
+.container.data-v-7c2ebfa5 {
   min-height: 100vh;
   background-color: #f8f8f8;
   padding: 30rpx;
   padding-bottom: 150rpx;
   /* 为底部自定义 tabBar 留白 */
 }
-.user-section {
+.user-section.data-v-7c2ebfa5 {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 40rpx 10rpx;
 }
-.user-section .user-info {
+.user-section .user-info.data-v-7c2ebfa5 {
   display: flex;
   align-items: center;
 }
-.user-section .user-info .avatar {
+.user-section .user-info .avatar.data-v-7c2ebfa5 {
   width: 120rpx;
   height: 120rpx;
   border-radius: 60rpx;
   background-color: #eee;
 }
-.user-section .user-info .meta {
+.user-section .user-info .meta.data-v-7c2ebfa5 {
   margin-left: 24rpx;
 }
-.user-section .user-info .meta .nickname {
+.user-section .user-info .meta .nickname.data-v-7c2ebfa5 {
   font-size: 36rpx;
   font-weight: bold;
   display: block;
 }
-.user-section .user-info .meta .level-tag {
+.user-section .user-info .meta .level-tag.data-v-7c2ebfa5 {
   font-size: 22rpx;
   color: #fff;
   background-color: #023993;
@@ -63,10 +63,10 @@
   margin-top: 10rpx;
   display: inline-block;
 }
-.user-section .settings-icon {
+.user-section .settings-icon.data-v-7c2ebfa5 {
   font-size: 40rpx;
 }
-.asset-card {
+.asset-card.data-v-7c2ebfa5 {
   background-color: #fff;
   border-radius: 20rpx;
   display: flex;
@@ -74,59 +74,59 @@
   margin-top: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
-.asset-card .asset-item {
+.asset-card .asset-item.data-v-7c2ebfa5 {
   flex: 1;
   text-align: center;
 }
-.asset-card .asset-item .num {
+.asset-card .asset-item .num.data-v-7c2ebfa5 {
   font-size: 36rpx;
   font-weight: bold;
   display: block;
 }
-.asset-card .asset-item .label {
+.asset-card .asset-item .label.data-v-7c2ebfa5 {
   font-size: 24rpx;
   color: #999;
   margin-top: 8rpx;
 }
-.asset-card .divider {
+.asset-card .divider.data-v-7c2ebfa5 {
   width: 1rpx;
   height: 60rpx;
   background-color: #eee;
   align-self: center;
 }
-.menu-list {
+.menu-list.data-v-7c2ebfa5 {
   background-color: #fff;
   border-radius: 20rpx;
   margin-top: 30rpx;
   padding: 0 30rpx;
 }
-.menu-list .menu-item {
+.menu-list .menu-item.data-v-7c2ebfa5 {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 34rpx 0;
   border-bottom: 1rpx solid #f5f5f5;
 }
-.menu-list .menu-item:last-child {
+.menu-list .menu-item.data-v-7c2ebfa5:last-child {
   border-bottom: none;
 }
-.menu-list .menu-item .left {
+.menu-list .menu-item .left.data-v-7c2ebfa5 {
   display: flex;
   align-items: center;
 }
-.menu-list .menu-item .left .icon {
+.menu-list .menu-item .left .icon.data-v-7c2ebfa5 {
   margin-right: 20rpx;
   font-size: 32rpx;
 }
-.menu-list .menu-item .left .text {
+.menu-list .menu-item .left .text.data-v-7c2ebfa5 {
   font-size: 30rpx;
   color: #333;
 }
-.menu-list .menu-item .arrow {
+.menu-list .menu-item .arrow.data-v-7c2ebfa5 {
   color: #ccc;
   font-size: 28rpx;
 }
-.logout-btn {
+.logout-btn.data-v-7c2ebfa5 {
   margin-top: 60rpx;
   background-color: #fff;
   color: #ff4d4f;
@@ -134,6 +134,6 @@
   font-size: 30rpx;
   border: none;
 }
-.logout-btn::after {
+.logout-btn.data-v-7c2ebfa5::after {
   border: none;
 }

@@ -1,5 +1,5 @@
 <template>
-    <view class="banner-box">
+    <view class="banner-box" :style="{ paddingTop: safeAreaInsets.top + 'px' }">
       <swiper 
         class="banner-swiper" 
         circular 
@@ -29,7 +29,7 @@
   
   <script setup>
   import { ref } from 'vue';
-  
+  const { safeAreaInsets } = uni.getSystemInfoSync();
   const props = defineProps({
     banners: { 
       type: Array, 

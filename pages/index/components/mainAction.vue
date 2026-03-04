@@ -21,9 +21,15 @@
   <script setup>
   const goToOrder = (type) => {
     uni.switchTab({
-      url: '/pages/order/order'
+      url: '/pages/order/order',
+      success: () => {
+        // 通过全局事件通知点单页的 header 切换模式
+        const mode = type === 'takeout' ? 'delivery' : 'pickup';
+        setTimeout(() => {
+          uni.$emit('orderModeChange', mode);
+        }, 200);
+      }
     });
-    uni.switchTab({ url: '/pages/order/order' });
   };
   </script>
   

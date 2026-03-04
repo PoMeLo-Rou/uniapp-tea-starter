@@ -5,14 +5,19 @@ const _sfc_main = {
   setup(__props) {
     const goToOrder = (type) => {
       common_vendor.index.switchTab({
-        url: "/pages/order/order"
+        url: "/pages/order/order",
+        success: () => {
+          const mode = type === "takeout" ? "delivery" : "pickup";
+          setTimeout(() => {
+            common_vendor.index.$emit("orderModeChange", mode);
+          }, 200);
+        }
       });
-      common_vendor.index.switchTab({ url: "/pages/order/order" });
     };
     return (_ctx, _cache) => {
       return {
-        a: common_vendor.o(($event) => goToOrder()),
-        b: common_vendor.o(($event) => goToOrder())
+        a: common_vendor.o(($event) => goToOrder("self")),
+        b: common_vendor.o(($event) => goToOrder("takeout"))
       };
     };
   }
