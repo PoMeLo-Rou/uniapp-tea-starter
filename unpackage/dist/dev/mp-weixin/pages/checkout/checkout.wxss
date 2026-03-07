@@ -1,0 +1,355 @@
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.checkout-page.data-v-fd186f5c {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 140rpx;
+}
+.checkout-header.data-v-fd186f5c {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 24rpx;
+  background: #fff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+.header-left.data-v-fd186f5c {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.back-icon.data-v-fd186f5c {
+  font-size: 40rpx;
+  color: #333;
+}
+.header-title.data-v-fd186f5c {
+  flex: 1;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+.header-right.data-v-fd186f5c {
+  width: 80rpx;
+  height: 80rpx;
+}
+.block.data-v-fd186f5c {
+  background: #fff;
+  margin-bottom: 20rpx;
+  padding: 24rpx 30rpx;
+}
+.block-title.data-v-fd186f5c {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+/* 取茶信息 */
+.pickup-block .pickup-row.data-v-fd186f5c {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.pickup-block .pickup-row .tag.data-v-fd186f5c {
+  background: #333;
+  color: #fff;
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+  margin-right: 16rpx;
+}
+.pickup-block .pickup-row .store-name.data-v-fd186f5c {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  min-width: 0;
+}
+.pickup-block .pickup-row .arrow.data-v-fd186f5c {
+  font-size: 24rpx;
+  color: #999;
+  margin-right: 12rpx;
+}
+.pickup-block .pickup-row .distance.data-v-fd186f5c {
+  font-size: 24rpx;
+  color: #999;
+  margin-right: 8rpx;
+}
+.pickup-block .pickup-row .map-icon.data-v-fd186f5c {
+  width: 28rpx;
+  height: 28rpx;
+}
+.pickup-block .pickup-tip.data-v-fd186f5c {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+/* 堂食/外带 */
+.order-type-block.data-v-fd186f5c {
+  display: flex;
+  gap: 20rpx;
+}
+.order-type-block .type-btn.data-v-fd186f5c {
+  flex: 1;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  padding: 24rpx;
+}
+.order-type-block .type-btn .type-main.data-v-fd186f5c {
+  display: block;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+.order-type-block .type-btn .type-sub.data-v-fd186f5c {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+.order-type-block .type-btn.active.data-v-fd186f5c {
+  border-color: #023993;
+  background: rgba(2, 57, 147, 0.06);
+}
+.order-type-block .type-btn.active .type-main.data-v-fd186f5c,
+.order-type-block .type-btn.active .type-sub.data-v-fd186f5c {
+  color: #023993;
+}
+/* DIY */
+.diy-block.data-v-fd186f5c {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.diy-block .diy-title.data-v-fd186f5c {
+  font-size: 28rpx;
+  color: #333;
+}
+.diy-block .diy-link.data-v-fd186f5c {
+  font-size: 26rpx;
+  color: #023993;
+}
+/* 商品明细 */
+.product-block .product-item.data-v-fd186f5c {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.product-block .product-item.data-v-fd186f5c:last-child {
+  border-bottom: none;
+}
+.product-block .prod-img-wrap.data-v-fd186f5c {
+  width: 160rpx;
+  margin-right: 20rpx;
+}
+.product-block .prod-img-wrap .prod-img.data-v-fd186f5c {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
+  background: #f0f0f0;
+}
+.product-block .prod-img-wrap .prod-cal.data-v-fd186f5c {
+  display: block;
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 8rpx;
+  text-align: center;
+}
+.product-block .prod-detail.data-v-fd186f5c {
+  flex: 1;
+}
+.product-block .prod-detail .prod-name.data-v-fd186f5c {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+}
+.product-block .prod-detail .prod-spec.data-v-fd186f5c {
+  font-size: 22rpx;
+  color: #999;
+  display: block;
+  margin-top: 8rpx;
+}
+.product-block .prod-detail .prod-right.data-v-fd186f5c {
+  margin-top: 16rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.product-block .prod-detail .prod-right .prod-price.data-v-fd186f5c {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+.product-block .prod-detail .prod-right .prod-num.data-v-fd186f5c {
+  font-size: 24rpx;
+  color: #999;
+}
+/* 精选搭配 */
+.match-block .match-scroll.data-v-fd186f5c {
+  white-space: nowrap;
+}
+.match-block .match-item.data-v-fd186f5c {
+  display: inline-block;
+  width: 200rpx;
+  margin-right: 20rpx;
+  text-align: center;
+}
+.match-block .match-item .match-img.data-v-fd186f5c {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  background: #f0f0f0;
+}
+.match-block .match-item .match-name.data-v-fd186f5c {
+  display: block;
+  font-size: 24rpx;
+  color: #333;
+  margin-top: 12rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.match-block .match-item .match-price.data-v-fd186f5c {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: bold;
+}
+.match-block .match-item .match-add.data-v-fd186f5c {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: #333;
+  color: #fff;
+  text-align: center;
+  line-height: 56rpx;
+  font-size: 36rpx;
+  margin: 12rpx auto 0;
+}
+/* 优惠 */
+.coupon-block .coupon-card.data-v-fd186f5c {
+  background: linear-gradient(135deg, #fff8e6 0%, #e8f5e9 100%);
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+.coupon-block .coupon-card .coupon-row.data-v-fd186f5c {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.coupon-block .coupon-card .coupon-title.data-v-fd186f5c {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+.coupon-block .coupon-card .coupon-tag.data-v-fd186f5c {
+  font-size: 24rpx;
+  color: #666;
+}
+.coupon-block .coupon-card .coupon-desc.data-v-fd186f5c {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+.coupon-block .coupon-row.plain.data-v-fd186f5c {
+  padding: 16rpx 0;
+}
+.coupon-block .coupon-row.plain .coupon-label.data-v-fd186f5c {
+  font-size: 28rpx;
+  color: #333;
+}
+.coupon-block .coupon-row.plain .coupon-value.data-v-fd186f5c {
+  font-size: 26rpx;
+  color: #999;
+}
+/* 底部支付栏 */
+.bottom-bar.data-v-fd186f5c {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 30rpx;
+  padding-right: 30rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+.bottom-bar .bar-left .bar-label.data-v-fd186f5c {
+  font-size: 24rpx;
+  color: #999;
+  margin-right: 8rpx;
+}
+.bottom-bar .bar-left .bar-price.data-v-fd186f5c {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #023993;
+}
+.bottom-bar .pay-btn.data-v-fd186f5c {
+  background: #023993;
+  color: #fff;
+  font-size: 30rpx;
+  width: 220rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  border-radius: 36rpx;
+  border: none;
+  margin: 0;
+}
+.bottom-bar .pay-btn.data-v-fd186f5c::after {
+  border: none;
+}

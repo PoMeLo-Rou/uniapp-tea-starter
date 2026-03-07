@@ -1,7 +1,7 @@
 <template>
 	<view class="checkout-page">
 		<!-- 取茶信息 -->
-		<view class="block pickup-block">
+		<view class="block pickup-block" :style="{ paddingBottom: safeAreaInsets.bottom + 'px' }" >
 			<view class="pickup-row">
 				<text class="tag">到店取</text>
 				<text class="store-name">贵港平南中心购物广场店</text>
@@ -46,7 +46,7 @@
 				</view>
 				<view class="prod-detail">
 					<text class="prod-name">{{ item.name }}</text>
-					<text class="prod-spec">{{ item.spec || '冰(推荐),推荐,少甜(推荐),可降解吸管' }}</text>
+					<text class="prod-spec">{{ item.spec || '' }}</text>
 					<view class="prod-right">
 						<text class="prod-price">¥{{ item.price }}</text>
 						<text class="prod-num">x{{ item.count }}</text>

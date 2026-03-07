@@ -131,6 +131,12 @@ const onClear = () => {
   font-size: 24rpx;
   color: #999;
 }
+.action-btn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+}
 .btn-circle {
   width: 44rpx; height: 44rpx; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;

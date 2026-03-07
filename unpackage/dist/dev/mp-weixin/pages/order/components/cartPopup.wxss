@@ -96,6 +96,12 @@
   font-size: 24rpx;
   color: #999;
 }
+.action-btn.data-v-3b58c82a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+}
 .btn-circle.data-v-3b58c82a {
   width: 44rpx;
   height: 44rpx;

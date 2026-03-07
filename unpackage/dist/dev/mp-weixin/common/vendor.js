@@ -7051,9 +7051,9 @@ function isConsoleWritable() {
   return isWritable;
 }
 function initRuntimeSocketService() {
-  const hosts = "192.168.1.21,127.0.0.1";
+  const hosts = "192.168.1.3,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_Bq9Yd-";
+  const id = "mp-weixin_zF90YF";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
