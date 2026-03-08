@@ -4,7 +4,14 @@ const common_assets = require("../../common/assets.js");
 const _sfc_main = {
   __name: "checkout",
   setup(__props) {
-    const { safeAreaInsets } = common_vendor.index.getSystemInfoSync();
+    const safeAreaInsets = (() => {
+      try {
+        const sys = common_vendor.index.getSystemInfoSync();
+        return sys.safeAreaInsets || { top: 0, bottom: 0, left: 0, right: 0 };
+      } catch (e) {
+        return { top: 0, bottom: 0, left: 0, right: 0 };
+      }
+    })();
     const orderItems = common_vendor.ref([]);
     const orderType = common_vendor.ref("dine");
     const totalPrice = common_vendor.computed(() => {
@@ -16,26 +23,14 @@ const _sfc_main = {
       { id: 3, name: "金凤茶酥", price: 1.9, image: "" }
     ]);
     common_vendor.onMounted(() => {
-      function applyOrderTypePref() {
-        const pref = common_vendor.index.getStorageSync("orderTypePref");
-        if (pref === "takeout" || pref === "dine") {
-          orderType.value = pref;
-        }
-      }
       try {
         const raw = common_vendor.index.getStorageSync("checkoutOrder");
         if (raw && raw.items && raw.items.length) {
           orderItems.value = raw.items;
-          if (raw.orderType === "takeout" || raw.orderType === "dine") {
-            orderType.value = raw.orderType;
-          } else {
-            applyOrderTypePref();
-          }
           return;
         }
       } catch (e) {
       }
-      applyOrderTypePref();
       orderItems.value = [
         {
           id: 101,
@@ -60,66 +55,19 @@ const _sfc_main = {
     const openCoupon = () => {
       common_vendor.index.showToast({ title: "喜茶券", icon: "none" });
     };
-    const cancelCheckout = () => {
-      try {
-        common_vendor.index.navigateBack();
-      } catch (e) {
-        common_vendor.index.switchTab({ url: "/pages/order/order" });
-      }
-    };
     const doPay = () => {
-      const items = orderItems.value;
-      if (!items || items.length === 0) {
-        common_vendor.index.showToast({ title: "请先添加商品", icon: "none" });
-        return;
-      }
-      const total = Number(totalPrice.value);
-      if (total <= 0) {
-        common_vendor.index.showToast({ title: "订单金额异常", icon: "none" });
-        return;
-      }
-      common_vendor.index.showLoading({ title: "提交中..." });
-      const orderNo = "ORD" + Date.now();
-      const orderData = {
-        order_no: orderNo,
-        order_type: orderType.value,
-        total_amount: total,
-        store_name: "贵港平南中心购物广场店",
-        status: "paid",
-        created_at: Date.now(),
-        items: items.map((it) => ({
-          name: it.name,
-          image: it.image || "",
-          spec: it.spec || "",
-          price: it.price,
-          count: it.count
-        }))
-      };
-      common_vendor.index.setStorageSync("lastOrder", orderData);
-      try {
-        const history = common_vendor.index.getStorageSync("orderHistory") || [];
-        common_vendor.index.setStorageSync("orderHistory", [orderData, ...history].slice(0, 50));
-      } catch (e) {
-      }
-      common_vendor.index.removeStorageSync("checkoutOrder");
-      common_vendor.index.$emit("orderSuccess");
-      common_vendor.index.hideLoading();
-      common_vendor.index.showToast({ title: "支付成功", icon: "success" });
-      setTimeout(() => {
-        common_vendor.index.redirectTo({ url: "/pages/order/detail?id=local" });
-      }, 800);
+      common_vendor.index.showToast({ title: "支付演示", icon: "none" });
     };
     return (_ctx, _cache) => {
       return {
-        a: common_vendor.o(cancelCheckout),
-        b: common_vendor.unref(safeAreaInsets).top + "px",
-        c: common_assets._imports_0$1,
-        d: common_vendor.n(orderType.value === "dine" ? "active" : ""),
-        e: common_vendor.o(($event) => orderType.value = "dine"),
-        f: common_vendor.n(orderType.value === "takeout" ? "active" : ""),
-        g: common_vendor.o(($event) => orderType.value = "takeout"),
-        h: common_vendor.o(goDiy),
-        i: common_vendor.f(orderItems.value, (item, index, i0) => {
+        a: common_assets._imports_0$1,
+        b: common_vendor.unref(safeAreaInsets).bottom + "px",
+        c: common_vendor.n(orderType.value === "dine" ? "active" : ""),
+        d: common_vendor.o(($event) => orderType.value = "dine"),
+        e: common_vendor.n(orderType.value === "takeout" ? "active" : ""),
+        f: common_vendor.o(($event) => orderType.value = "takeout"),
+        g: common_vendor.o(goDiy),
+        h: common_vendor.f(orderItems.value, (item, index, i0) => {
           return common_vendor.e({
             a: item.image || "/static/logo.png",
             b: item.cal
@@ -133,7 +81,7 @@ const _sfc_main = {
             h: index
           });
         }),
-        j: common_vendor.f(matchList.value, (m, i, i0) => {
+        i: common_vendor.f(matchList.value, (m, i, i0) => {
           return {
             a: m.image || "/static/logo.png",
             b: common_vendor.t(m.name),
@@ -142,10 +90,10 @@ const _sfc_main = {
             e: common_vendor.o(($event) => addMatch(), i)
           };
         }),
-        k: common_vendor.o(openCard),
-        l: common_vendor.o(openCoupon),
-        m: common_vendor.t(totalPrice.value),
-        n: common_vendor.o(doPay)
+        j: common_vendor.o(openCard),
+        k: common_vendor.o(openCoupon),
+        l: common_vendor.t(totalPrice.value),
+        m: common_vendor.o(doPay)
       };
     };
   }

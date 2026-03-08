@@ -115,10 +115,30 @@ const _sfc_main = {
     const checkout = () => {
       if (totalCount.value === 0)
         return;
-      common_vendor.index.showToast({
-        title: "结算功能演示",
-        icon: "none"
+      const items = [];
+      Object.values(cart.value).forEach((item) => {
+        if (!item || !item.count)
+          return;
+        const p = getProductById(item.id);
+        if (!p)
+          return;
+        const specParts = item.specs ? [item.specs.sweet, item.specs.ice].filter(Boolean) : [];
+        const spec = specParts.length ? specParts.join(" / ") : "";
+        items.push({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          image: p.image || "",
+          count: item.count,
+          spec
+        });
       });
+      if (items.length === 0) {
+        common_vendor.index.showToast({ title: "购物车为空", icon: "none" });
+        return;
+      }
+      common_vendor.index.setStorageSync("checkoutOrder", { items });
+      common_vendor.index.navigateTo({ url: "/pages/checkout/checkout" });
     };
     const fetchCategories = () => {
       return new Promise((resolve, reject) => {
@@ -180,6 +200,13 @@ const _sfc_main = {
     });
     common_vendor.onUnmounted(() => {
       common_vendor.index.$off("openSpec", onOpenSpecFromHome);
+    });
+    common_vendor.onShow(() => {
+      if (common_vendor.index.getStorageSync("justPaid")) {
+        cart.value = {};
+        showCartDetail.value = false;
+        common_vendor.index.removeStorageSync("justPaid");
+      }
     });
     const onOpenSpecFromHome = ({ productId }) => {
       const product = getProductById(productId);

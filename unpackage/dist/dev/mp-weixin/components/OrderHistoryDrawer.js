@@ -9,7 +9,14 @@ const _sfc_main = {
   setup(__props, { emit: __emit }) {
     const props = __props;
     const emit = __emit;
-    const { safeAreaInsets } = common_vendor.index.getSystemInfoSync();
+    const safeAreaInsets = (() => {
+      try {
+        const sys = common_vendor.index.getSystemInfoSync();
+        return sys.safeAreaInsets || { top: 0, bottom: 0, left: 0, right: 0 };
+      } catch (e) {
+        return { top: 0, bottom: 0, left: 0, right: 0 };
+      }
+    })();
     const orderList = common_vendor.ref([]);
     const panelVisible = common_vendor.ref(false);
     const closeTimer = common_vendor.ref(null);

@@ -1,5 +1,4 @@
 {
-  "navigationBarTitleText": "结算",
-  "navigationStyle": "custom",
+  "navigationBarTitleText": "确认订单",
   "usingComponents": {}
 }

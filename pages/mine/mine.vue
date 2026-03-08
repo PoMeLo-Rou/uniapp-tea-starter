@@ -7,7 +7,7 @@
 			<text class="nickname">茶友_8293</text>
 			<text class="level-tag">V2 黄金会员</text>
 		  </view>
-		</view>0
+		</view>
 		<view class="settings-icon">⚙️</view>
 	  </view>
   
@@ -64,14 +64,32 @@
 	  
 	  <button class="logout-btn">退出登录</button>
 		<CustomTabBar current-path="/pages/mine/mine" />
+
+		<!-- 历史订单抽屉 -->
+		<OrderHistoryDrawer :show="showOrderDrawer" @update:show="showOrderDrawer = $event" />
 	</view>
   </template>
   
   <script setup>
-  const { safeAreaInsets } = uni.getSystemInfoSync();
+  import { ref } from 'vue';
+  const safeAreaInsets = (() => {
+    try {
+      const sys = uni.getSystemInfoSync();
+      return sys.safeAreaInsets || { top: 0, bottom: 0, left: 0, right: 0 };
+    } catch (e) {
+      return { top: 0, bottom: 0, left: 0, right: 0 };
+    }
+  })();
   import CustomTabBar from '@/components/custom-tab-bar.vue';
+  import OrderHistoryDrawer from '@/components/OrderHistoryDrawer.vue';
+
+  const showOrderDrawer = ref(false);
 
   const handleMenuClick = (type) => {
+	if (type === 'order') {
+	  showOrderDrawer.value = true;
+	  return;
+	}
 	uni.showToast({
 	  title: `点击了 ${type} 功能`,
 	  icon: 'none'
@@ -85,6 +103,7 @@
     background-color: #f8f8f8;
     padding: 30rpx;
     padding-bottom: 150rpx; /* 为底部自定义 tabBar 留白 */
+    overflow: visible; /* 避免裁剪历史订单抽屉的 fixed 层 */
   }
   
   .user-section {

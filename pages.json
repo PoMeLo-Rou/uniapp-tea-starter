@@ -34,6 +34,12 @@
 		"style": {
 			"navigationBarTitleText": ""
 		}
+	},
+	{
+		"path": "pages/checkout/checkout",
+		"style": {
+			"navigationBarTitleText": "确认订单"
+		}
 	}
   ],
   "tabBar": {

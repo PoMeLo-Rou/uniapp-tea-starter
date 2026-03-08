@@ -29,6 +29,8 @@
   padding: 30rpx;
   padding-bottom: 150rpx;
   /* 为底部自定义 tabBar 留白 */
+  overflow: visible;
+  /* 避免裁剪历史订单抽屉的 fixed 层 */
 }
 .user-section.data-v-7c2ebfa5 {
   display: flex;

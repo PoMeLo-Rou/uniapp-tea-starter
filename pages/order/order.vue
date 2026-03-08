@@ -170,6 +170,7 @@
 		getCurrentInstance,
 		nextTick
 	} from 'vue';
+	import { onShow } from '@dcloudio/uni-app';
 	import orderHeader from './components/orderHeader.vue';
 	import categoryNav from './components/categoryNav.vue';
 	import productList from './components/productList.vue';
@@ -310,10 +311,29 @@
 
 	const checkout = () => {
 		if (totalCount.value === 0) return;
-		uni.showToast({
-			title: '结算功能演示',
-			icon: 'none'
+		// 将购物车转为结算页需要的格式 { items: [{ id, name, price, image, count, spec }, ...] }
+		const items = [];
+		Object.values(cart.value).forEach((item) => {
+			if (!item || !item.count) return;
+			const p = getProductById(item.id);
+			if (!p) return;
+			const specParts = item.specs ? [item.specs.sweet, item.specs.ice].filter(Boolean) : [];
+			const spec = specParts.length ? specParts.join(' / ') : '';
+			items.push({
+				id: p.id,
+				name: p.name,
+				price: p.price,
+				image: p.image || '',
+				count: item.count,
+				spec,
+			});
 		});
+		if (items.length === 0) {
+			uni.showToast({ title: '购物车为空', icon: 'none' });
+			return;
+		}
+		uni.setStorageSync('checkoutOrder', { items });
+		uni.navigateTo({ url: '/pages/checkout/checkout' });
 	};
 
 	// 计算右侧每个分类块在滚动容器内的偏移，用于联动左侧导航
@@ -381,6 +401,15 @@
 	});
 	onUnmounted(() => {
 		uni.$off('openSpec', onOpenSpecFromHome);
+	});
+
+	// 从结算页支付成功返回时清空购物车
+	onShow(() => {
+		if (uni.getStorageSync('justPaid')) {
+			cart.value = {};
+			showCartDetail.value = false;
+			uni.removeStorageSync('justPaid');
+		}
 	});
 
 	// 首页推荐位点击后跳转过来，打开对应商品的规格弹窗

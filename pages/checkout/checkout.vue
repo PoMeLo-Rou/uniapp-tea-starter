@@ -97,6 +97,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 
+// 兼容部分环境无 safeAreaInsets 导致白屏
+const safeAreaInsets = (() => {
+	try {
+		const sys = uni.getSystemInfoSync();
+		return sys.safeAreaInsets || { top: 0, bottom: 0, left: 0, right: 0 };
+	} catch (e) {
+		return { top: 0, bottom: 0, left: 0, right: 0 };
+	}
+})();
+
 // 从 storage 读取点餐页传入的结算数据
 const orderItems = ref([]);
 const orderType = ref('dine'); // dine | takeout
@@ -446,6 +456,7 @@ const doPay = () => {
 		text-align: center;
 		border-radius: 36rpx;
 		border: none;
+		margin:0;
 		&::after {
 			border: none;
 		}
