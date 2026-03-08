@@ -1,12 +1,14 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
+const API_BASE = "http://localhost:3000";
 const _sfc_main = {
   __name: "checkout",
   setup(__props) {
     const { safeAreaInsets } = common_vendor.index.getSystemInfoSync();
     const orderItems = common_vendor.ref([]);
     const orderType = common_vendor.ref("dine");
+    const paying = common_vendor.ref(false);
     const totalPrice = common_vendor.computed(() => {
       return orderItems.value.reduce((sum, it) => sum + it.price * it.count, 0).toFixed(2);
     });
@@ -20,6 +22,8 @@ const _sfc_main = {
         const raw = common_vendor.index.getStorageSync("checkoutOrder");
         if (raw && raw.items && raw.items.length) {
           orderItems.value = raw.items;
+          if (raw.orderType)
+            orderType.value = raw.orderType;
           return;
         }
       } catch (e) {
@@ -55,8 +59,78 @@ const _sfc_main = {
         common_vendor.index.switchTab({ url: "/pages/order/order" });
       }
     };
-    const doPay = () => {
-      common_vendor.index.showToast({ title: "支付演示", icon: "none" });
+    const request = (options) => {
+      return new Promise((resolve, reject) => {
+        common_vendor.index.request({
+          ...options,
+          success: (res) => {
+            var _a;
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              resolve(res.data);
+            } else {
+              reject(new Error(((_a = res.data) == null ? void 0 : _a.message) || `请求失败 (${res.statusCode})`));
+            }
+          },
+          fail: (err) => reject(new Error(err.errMsg || "网络错误"))
+        });
+      });
+    };
+    const doPay = async () => {
+      if (paying.value)
+        return;
+      if (!orderItems.value.length) {
+        common_vendor.index.showToast({ title: "订单为空", icon: "none" });
+        return;
+      }
+      paying.value = true;
+      common_vendor.index.showLoading({ title: "正在创建订单...", mask: true });
+      try {
+        const orderRes = await request({
+          url: `${API_BASE}/api/orders`,
+          method: "POST",
+          header: { "Content-Type": "application/json" },
+          data: {
+            userId: 1,
+            items: orderItems.value,
+            orderType: orderType.value,
+            totalPrice: Number(totalPrice.value)
+          }
+        });
+        const { orderId, orderNo } = orderRes;
+        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:222", "[checkout] 订单已创建:", orderNo, "id:", orderId);
+        common_vendor.index.showLoading({ title: "支付中...", mask: true });
+        await request({
+          url: `${API_BASE}/api/orders/${orderId}/pay`,
+          method: "POST",
+          header: { "Content-Type": "application/json" }
+        });
+        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:232", "[checkout] 支付成功, orderId:", orderId);
+        common_vendor.index.hideLoading();
+        common_vendor.index.removeStorageSync("checkoutOrder");
+        common_vendor.index.setStorageSync("justPaid", true);
+        common_vendor.index.setStorageSync("lastPaidOrder", {
+          orderId,
+          orderNo,
+          totalPrice: totalPrice.value,
+          items: orderItems.value,
+          orderType: orderType.value,
+          paidAt: (/* @__PURE__ */ new Date()).toISOString()
+        });
+        common_vendor.index.showToast({ title: "支付成功！", icon: "success", duration: 1500 });
+        setTimeout(() => {
+          common_vendor.index.switchTab({ url: "/pages/order/order" });
+        }, 1500);
+      } catch (err) {
+        common_vendor.index.hideLoading();
+        common_vendor.index.__f__("error", "at pages/checkout/checkout.vue:254", "[checkout] 支付流程出错:", err);
+        common_vendor.index.showModal({
+          title: "支付失败",
+          content: err.message || "网络异常，请稍后重试",
+          showCancel: false
+        });
+      } finally {
+        paying.value = false;
+      }
     };
     return (_ctx, _cache) => {
       return {
@@ -94,7 +168,10 @@ const _sfc_main = {
         k: common_vendor.o(openCard),
         l: common_vendor.o(openCoupon),
         m: common_vendor.t(totalPrice.value),
-        n: common_vendor.o(doPay)
+        n: common_vendor.t(paying.value ? "支付中..." : "支付"),
+        o: paying.value ? 1 : "",
+        p: common_vendor.o(doPay),
+        q: paying.value
       };
     };
   }

@@ -98,7 +98,9 @@
 				<text class="bar-label">待支付</text>
 				<text class="bar-price">¥{{ totalPrice }}</text>
 			</view>
-			<button class="pay-btn" @click="doPay">支付</button>
+			<button class="pay-btn" :class="{ disabled: paying }" @click="doPay" :disabled="paying">
+			{{ paying ? '支付中...' : '支付' }}
+		</button>
 		</view>
 	</view>
 </template>
@@ -107,15 +109,16 @@
 import { ref, computed, onMounted } from 'vue';
 const { safeAreaInsets } = uni.getSystemInfoSync();
 
-// 从 storage 读取点餐页传入的结算数据
+const API_BASE = 'http://localhost:3000';
+
 const orderItems = ref([]);
-const orderType = ref('dine'); // dine | takeout
+const orderType = ref('dine');
+const paying = ref(false);
 
 const totalPrice = computed(() => {
 	return orderItems.value.reduce((sum, it) => sum + it.price * it.count, 0).toFixed(2);
 });
 
-// 精选搭配静态数据
 const matchList = ref([
 	{ id: 1, name: '茉莉绿妍凤梨...', price: 32.8, image: '' },
 	{ id: 2, name: '绿妍蝴蝶酥', price: 3.5, image: '' },
@@ -127,10 +130,10 @@ onMounted(() => {
 		const raw = uni.getStorageSync('checkoutOrder');
 		if (raw && raw.items && raw.items.length) {
 			orderItems.value = raw.items;
+			if (raw.orderType) orderType.value = raw.orderType;
 			return;
 		}
 	} catch (e) {}
-	// 无数据时静态演示
 	orderItems.value = [
 		{
 			id: 101,
@@ -161,17 +164,102 @@ const openCoupon = () => {
 };
 
 const cancelCheckout = () => {
-	// 返回上一页（点单页），保留原来的购物车数据
 	try {
 		uni.navigateBack();
 	} catch (e) {
-		// 如果栈中没有上一页，则兜底跳转到点单页 Tab
 		uni.switchTab({ url: '/pages/order/order' });
 	}
 };
 
-const doPay = () => {
-	uni.showToast({ title: '支付演示', icon: 'none' });
+/** 封装 uni.request 为 Promise */
+const request = (options) => {
+	return new Promise((resolve, reject) => {
+		uni.request({
+			...options,
+			success: (res) => {
+				if (res.statusCode >= 200 && res.statusCode < 300) {
+					resolve(res.data);
+				} else {
+					reject(new Error(res.data?.message || `请求失败 (${res.statusCode})`));
+				}
+			},
+			fail: (err) => reject(new Error(err.errMsg || '网络错误')),
+		});
+	});
+};
+
+/**
+ * 支付流程：
+ * 1. POST /api/orders        → 创建订单，拿到 orderId
+ * 2. POST /api/orders/:id/pay → 模拟支付
+ * 3. 成功后标记 justPaid、清除结算缓存、返回点单页
+ */
+const doPay = async () => {
+	if (paying.value) return;
+	if (!orderItems.value.length) {
+		uni.showToast({ title: '订单为空', icon: 'none' });
+		return;
+	}
+
+	paying.value = true;
+	uni.showLoading({ title: '正在创建订单...', mask: true });
+
+	try {
+		// 第一步：创建订单
+		const orderRes = await request({
+			url: `${API_BASE}/api/orders`,
+			method: 'POST',
+			header: { 'Content-Type': 'application/json' },
+			data: {
+				userId: 1,
+				items: orderItems.value,
+				orderType: orderType.value,
+				totalPrice: Number(totalPrice.value),
+			},
+		});
+
+		const { orderId, orderNo } = orderRes;
+		console.log('[checkout] 订单已创建:', orderNo, 'id:', orderId);
+
+		// 第二步：模拟支付
+		uni.showLoading({ title: '支付中...', mask: true });
+		await request({
+			url: `${API_BASE}/api/orders/${orderId}/pay`,
+			method: 'POST',
+			header: { 'Content-Type': 'application/json' },
+		});
+
+		console.log('[checkout] 支付成功, orderId:', orderId);
+		uni.hideLoading();
+
+		// 第三步：支付成功后处理
+		uni.removeStorageSync('checkoutOrder');
+		uni.setStorageSync('justPaid', true);
+		uni.setStorageSync('lastPaidOrder', {
+			orderId,
+			orderNo,
+			totalPrice: totalPrice.value,
+			items: orderItems.value,
+			orderType: orderType.value,
+			paidAt: new Date().toISOString(),
+		});
+
+		uni.showToast({ title: '支付成功！', icon: 'success', duration: 1500 });
+
+		setTimeout(() => {
+			uni.switchTab({ url: '/pages/order/order' });
+		}, 1500);
+	} catch (err) {
+		uni.hideLoading();
+		console.error('[checkout] 支付流程出错:', err);
+		uni.showModal({
+			title: '支付失败',
+			content: err.message || '网络异常，请稍后重试',
+			showCancel: false,
+		});
+	} finally {
+		paying.value = false;
+	}
 };
 </script>
 
@@ -500,6 +588,9 @@ const doPay = () => {
 		margin:0;
 		&::after {
 			border: none;
+		}
+		&.disabled {
+			opacity: 0.6;
 		}
 	}
 }

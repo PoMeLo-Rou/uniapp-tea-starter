@@ -207,6 +207,15 @@ const _sfc_main = {
         cart.value = {};
         showCartDetail.value = false;
         common_vendor.index.removeStorageSync("justPaid");
+        const lastOrder = common_vendor.index.getStorageSync("lastPaidOrder");
+        if (lastOrder) {
+          common_vendor.index.showToast({
+            title: `订单 ¥${lastOrder.totalPrice} 已支付`,
+            icon: "success",
+            duration: 2e3
+          });
+          common_vendor.index.removeStorageSync("lastPaidOrder");
+        }
       }
     });
     const onOpenSpecFromHome = ({ productId }) => {

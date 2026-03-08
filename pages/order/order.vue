@@ -404,12 +404,21 @@
 		uni.$off('openSpec', onOpenSpecFromHome);
 	});
 
-	// 从结算页支付成功返回时清空购物车
 	onShow(() => {
 		if (uni.getStorageSync('justPaid')) {
 			cart.value = {};
 			showCartDetail.value = false;
 			uni.removeStorageSync('justPaid');
+
+			const lastOrder = uni.getStorageSync('lastPaidOrder');
+			if (lastOrder) {
+				uni.showToast({
+					title: `订单 ¥${lastOrder.totalPrice} 已支付`,
+					icon: 'success',
+					duration: 2000,
+				});
+				uni.removeStorageSync('lastPaidOrder');
+			}
 		}
 	});
 

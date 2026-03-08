@@ -353,3 +353,6 @@
 .bottom-bar .pay-btn.data-v-fd186f5c::after {
   border: none;
 }
+.bottom-bar .pay-btn.disabled.data-v-fd186f5c {
+  opacity: 0.6;
+}
