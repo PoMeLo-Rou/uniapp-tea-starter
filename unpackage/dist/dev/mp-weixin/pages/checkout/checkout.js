@@ -4,14 +4,7 @@ const common_assets = require("../../common/assets.js");
 const _sfc_main = {
   __name: "checkout",
   setup(__props) {
-    const safeAreaInsets = (() => {
-      try {
-        const sys = common_vendor.index.getSystemInfoSync();
-        return sys.safeAreaInsets || { top: 0, bottom: 0, left: 0, right: 0 };
-      } catch (e) {
-        return { top: 0, bottom: 0, left: 0, right: 0 };
-      }
-    })();
+    const { safeAreaInsets } = common_vendor.index.getSystemInfoSync();
     const orderItems = common_vendor.ref([]);
     const orderType = common_vendor.ref("dine");
     const totalPrice = common_vendor.computed(() => {
@@ -55,19 +48,27 @@ const _sfc_main = {
     const openCoupon = () => {
       common_vendor.index.showToast({ title: "喜茶券", icon: "none" });
     };
+    const cancelCheckout = () => {
+      try {
+        common_vendor.index.navigateBack();
+      } catch (e) {
+        common_vendor.index.switchTab({ url: "/pages/order/order" });
+      }
+    };
     const doPay = () => {
       common_vendor.index.showToast({ title: "支付演示", icon: "none" });
     };
     return (_ctx, _cache) => {
       return {
-        a: common_assets._imports_0$1,
-        b: common_vendor.unref(safeAreaInsets).bottom + "px",
-        c: common_vendor.n(orderType.value === "dine" ? "active" : ""),
-        d: common_vendor.o(($event) => orderType.value = "dine"),
-        e: common_vendor.n(orderType.value === "takeout" ? "active" : ""),
-        f: common_vendor.o(($event) => orderType.value = "takeout"),
-        g: common_vendor.o(goDiy),
-        h: common_vendor.f(orderItems.value, (item, index, i0) => {
+        a: common_vendor.o(cancelCheckout),
+        b: common_vendor.unref(safeAreaInsets).top + "px",
+        c: common_assets._imports_0$1,
+        d: common_vendor.n(orderType.value === "dine" ? "active" : ""),
+        e: common_vendor.o(($event) => orderType.value = "dine"),
+        f: common_vendor.n(orderType.value === "takeout" ? "active" : ""),
+        g: common_vendor.o(($event) => orderType.value = "takeout"),
+        h: common_vendor.o(goDiy),
+        i: common_vendor.f(orderItems.value, (item, index, i0) => {
           return common_vendor.e({
             a: item.image || "/static/logo.png",
             b: item.cal
@@ -81,7 +82,7 @@ const _sfc_main = {
             h: index
           });
         }),
-        i: common_vendor.f(matchList.value, (m, i, i0) => {
+        j: common_vendor.f(matchList.value, (m, i, i0) => {
           return {
             a: m.image || "/static/logo.png",
             b: common_vendor.t(m.name),
@@ -90,10 +91,10 @@ const _sfc_main = {
             e: common_vendor.o(($event) => addMatch(), i)
           };
         }),
-        j: common_vendor.o(openCard),
-        k: common_vendor.o(openCoupon),
-        l: common_vendor.t(totalPrice.value),
-        m: common_vendor.o(doPay)
+        k: common_vendor.o(openCard),
+        l: common_vendor.o(openCoupon),
+        m: common_vendor.t(totalPrice.value),
+        n: common_vendor.o(doPay)
       };
     };
   }

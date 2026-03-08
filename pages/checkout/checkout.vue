@@ -1,7 +1,16 @@
 <template>
 	<view class="checkout-page">
+		<!-- 顶部返回 + 标题 -->
+		<view class="checkout-header" :style="{ paddingTop: safeAreaInsets.top + 'px' }">
+			<view class="header-left" @click="cancelCheckout">
+				<text class="back-icon">‹</text>
+			</view>
+			<text class="header-title">确认订单</text>
+			<view class="header-right"></view>
+		</view>
+
 		<!-- 取茶信息 -->
-		<view class="block pickup-block" :style="{ paddingBottom: safeAreaInsets.bottom + 'px' }" >
+		<view class="block pickup-block">
 			<view class="pickup-row">
 				<text class="tag">到店取</text>
 				<text class="store-name">贵港平南中心购物广场店</text>
@@ -96,16 +105,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-
-// 兼容部分环境无 safeAreaInsets 导致白屏
-const safeAreaInsets = (() => {
-	try {
-		const sys = uni.getSystemInfoSync();
-		return sys.safeAreaInsets || { top: 0, bottom: 0, left: 0, right: 0 };
-	} catch (e) {
-		return { top: 0, bottom: 0, left: 0, right: 0 };
-	}
-})();
+const { safeAreaInsets } = uni.getSystemInfoSync();
 
 // 从 storage 读取点餐页传入的结算数据
 const orderItems = ref([]);
@@ -160,6 +160,16 @@ const openCoupon = () => {
 	uni.showToast({ title: '喜茶券', icon: 'none' });
 };
 
+const cancelCheckout = () => {
+	// 返回上一页（点单页），保留原来的购物车数据
+	try {
+		uni.navigateBack();
+	} catch (e) {
+		// 如果栈中没有上一页，则兜底跳转到点单页 Tab
+		uni.switchTab({ url: '/pages/order/order' });
+	}
+};
+
 const doPay = () => {
 	uni.showToast({ title: '支付演示', icon: 'none' });
 };
@@ -172,6 +182,37 @@ const doPay = () => {
 	min-height: 100vh;
 	background: #f5f5f5;
 	padding-bottom: 140rpx;
+}
+
+.checkout-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16rpx 24rpx;
+	background: #fff;
+	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+.header-left {
+	width: 80rpx;
+	height: 80rpx;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+.back-icon {
+	font-size: 40rpx;
+	color: #333;
+}
+.header-title {
+	flex: 1;
+	text-align: center;
+	font-size: 32rpx;
+	font-weight: 600;
+	color: #333;
+}
+.header-right {
+	width: 80rpx;
+	height: 80rpx;
 }
 
 .block {
@@ -463,3 +504,4 @@ const doPay = () => {
 	}
 }
 </style>
+

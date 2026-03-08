@@ -20,6 +20,7 @@ const _sfc_main = {
     const isClickScrolling = common_vendor.ref(false);
     const categories = common_vendor.ref([]);
     const products = common_vendor.ref([]);
+    const orderType = common_vendor.ref("dine");
     const getProductsByCategory = (catId) => products.value.filter((p) => p.category_id === catId);
     const getProductById = (pid) => products.value.find((p) => p.id == pid);
     const buildCartKey = (id, specs = {}) => {
@@ -137,7 +138,7 @@ const _sfc_main = {
         common_vendor.index.showToast({ title: "购物车为空", icon: "none" });
         return;
       }
-      common_vendor.index.setStorageSync("checkoutOrder", { items });
+      common_vendor.index.setStorageSync("checkoutOrder", { items, orderType: orderType.value });
       common_vendor.index.navigateTo({ url: "/pages/checkout/checkout" });
     };
     const fetchCategories = () => {
@@ -233,7 +234,11 @@ const _sfc_main = {
     };
     return (_ctx, _cache) => {
       return common_vendor.e({
-        a: common_vendor.f(categories.value, (cat, k0, i0) => {
+        a: common_vendor.o(($event) => orderType.value = $event),
+        b: common_vendor.p({
+          orderType: orderType.value
+        }),
+        c: common_vendor.f(categories.value, (cat, k0, i0) => {
           return common_vendor.e({
             a: activeCategory.value === cat.id
           }, activeCategory.value === cat.id ? {} : {}, {
@@ -245,8 +250,8 @@ const _sfc_main = {
             g: common_vendor.o(($event) => scrollToCategory(cat.id), cat.id)
           });
         }),
-        b: "nav-" + activeCategory.value,
-        c: common_vendor.f(categories.value, (cat, k0, i0) => {
+        d: "nav-" + activeCategory.value,
+        e: common_vendor.f(categories.value, (cat, k0, i0) => {
           return {
             a: common_vendor.t(cat.name),
             b: common_vendor.f(getProductsByCategory(cat.id), (product, k1, i1) => {
@@ -271,31 +276,31 @@ const _sfc_main = {
             d: "category-" + cat.id
           };
         }),
-        d: rightScrollIntoView.value,
-        e: common_vendor.o(handleScroll),
-        f: totalCount.value > 0
+        f: rightScrollIntoView.value,
+        g: common_vendor.o(handleScroll),
+        h: totalCount.value > 0
       }, totalCount.value > 0 ? {
-        g: common_assets._imports_0,
-        h: common_vendor.t(totalCount.value),
-        i: common_vendor.o(toggleCartDetail),
-        j: common_vendor.t(totalPrice.value),
-        k: common_vendor.o(checkout)
+        i: common_assets._imports_0,
+        j: common_vendor.t(totalCount.value),
+        k: common_vendor.o(toggleCartDetail),
+        l: common_vendor.t(totalPrice.value),
+        m: common_vendor.o(checkout)
       } : {}, {
-        l: common_vendor.p({
+        n: common_vendor.p({
           ["current-path"]: "/pages/order/order"
         }),
-        m: common_vendor.o(setShowCartDetail),
-        n: common_vendor.o(updateCart),
-        o: common_vendor.o(clearCart),
-        p: common_vendor.p({
+        o: common_vendor.o(setShowCartDetail),
+        p: common_vendor.o(updateCart),
+        q: common_vendor.o(clearCart),
+        r: common_vendor.p({
           show: showCartDetail.value,
           items: cart.value,
           getProduct: getProductById
         }),
-        q: common_vendor.sr(detailPopup, "93207a4f-3", {
+        s: common_vendor.sr(detailPopup, "93207a4f-3", {
           "k": "detailPopup"
         }),
-        r: common_vendor.o(onAddToCart)
+        t: common_vendor.o(onAddToCart)
       });
     };
   }

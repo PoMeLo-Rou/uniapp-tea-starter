@@ -14,13 +14,13 @@ const _sfc_main = {
     const list = [
       {
         pagePath: "/pages/index/index",
-        text: "点单",
+        text: "首页",
         iconPath: "/static/index.png",
         selectedIconPath: "/static/index-selected.png"
       },
       {
         pagePath: "/pages/order/order",
-        text: "订单",
+        text: "点单",
         iconPath: "/static/order.png",
         selectedIconPath: "/static/order-selected.png"
       },

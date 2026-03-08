@@ -35,7 +35,7 @@
         <text class="notice-text">会员日全场双倍积分，新品“酷黑莓桑”上线！</text>
       </view>
     </view -->
-		<orderHeader />
+		<orderHeader :orderType="orderType" @update:orderType="orderType = $event" />
 		<!-- 2. 中间点单区域 -->
 		<view class="main-content">
 
@@ -191,6 +191,7 @@
 
 	const categories = ref([]);
 	const products = ref([]);
+	const orderType = ref('dine'); // dine 堂食 | takeout 外带，与结算页一致
 
 	// --- 计算属性 ---
 	const getProductsByCategory = (catId) => products.value.filter(p => p.category_id === catId);
@@ -332,7 +333,7 @@
 			uni.showToast({ title: '购物车为空', icon: 'none' });
 			return;
 		}
-		uni.setStorageSync('checkoutOrder', { items });
+		uni.setStorageSync('checkoutOrder', { items, orderType: orderType.value });
 		uni.navigateTo({ url: '/pages/checkout/checkout' });
 	};
 
