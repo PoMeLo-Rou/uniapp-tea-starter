@@ -1,13 +1,13 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
-const API_BASE = "http://localhost:3000";
+const common_api_order = require("../../common/api/order.js");
 const _sfc_main = {
   __name: "checkout",
   setup(__props) {
     const { safeAreaInsets } = common_vendor.index.getSystemInfoSync();
     const orderItems = common_vendor.ref([]);
-    const orderType = common_vendor.ref("dine");
+    const orderType = common_vendor.ref("pickup");
     const paying = common_vendor.ref(false);
     const totalPrice = common_vendor.computed(() => {
       return orderItems.value.reduce((sum, it) => sum + it.price * it.count, 0).toFixed(2);
@@ -59,22 +59,6 @@ const _sfc_main = {
         common_vendor.index.switchTab({ url: "/pages/order/order" });
       }
     };
-    const request = (options) => {
-      return new Promise((resolve, reject) => {
-        common_vendor.index.request({
-          ...options,
-          success: (res) => {
-            var _a;
-            if (res.statusCode >= 200 && res.statusCode < 300) {
-              resolve(res.data);
-            } else {
-              reject(new Error(((_a = res.data) == null ? void 0 : _a.message) || `请求失败 (${res.statusCode})`));
-            }
-          },
-          fail: (err) => reject(new Error(err.errMsg || "网络错误"))
-        });
-      });
-    };
     const doPay = async () => {
       if (paying.value)
         return;
@@ -85,26 +69,18 @@ const _sfc_main = {
       paying.value = true;
       common_vendor.index.showLoading({ title: "正在创建订单...", mask: true });
       try {
-        const orderRes = await request({
-          url: `${API_BASE}/api/orders`,
-          method: "POST",
-          header: { "Content-Type": "application/json" },
-          data: {
-            userId: 1,
-            items: orderItems.value,
-            orderType: orderType.value,
-            totalPrice: Number(totalPrice.value)
-          }
+        const storedUserId = common_vendor.index.getStorageSync("userId") || 1;
+        const orderRes = await common_api_order.createOrder({
+          userId: storedUserId,
+          items: orderItems.value,
+          orderType: orderType.value,
+          totalPrice: Number(totalPrice.value)
         });
         const { orderId, orderNo } = orderRes;
-        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:222", "[checkout] 订单已创建:", orderNo, "id:", orderId);
+        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:200", "[checkout] 订单已创建:", orderNo, "id:", orderId);
         common_vendor.index.showLoading({ title: "支付中...", mask: true });
-        await request({
-          url: `${API_BASE}/api/orders/${orderId}/pay`,
-          method: "POST",
-          header: { "Content-Type": "application/json" }
-        });
-        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:232", "[checkout] 支付成功, orderId:", orderId);
+        await common_api_order.payOrder(orderId);
+        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:206", "[checkout] 支付成功, orderId:", orderId);
         common_vendor.index.hideLoading();
         common_vendor.index.removeStorageSync("checkoutOrder");
         common_vendor.index.setStorageSync("justPaid", true);
@@ -122,7 +98,7 @@ const _sfc_main = {
         }, 1500);
       } catch (err) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/checkout/checkout.vue:254", "[checkout] 支付流程出错:", err);
+        common_vendor.index.__f__("error", "at pages/checkout/checkout.vue:228", "[checkout] 支付流程出错:", err);
         common_vendor.index.showModal({
           title: "支付失败",
           content: err.message || "网络异常，请稍后重试",
@@ -137,10 +113,10 @@ const _sfc_main = {
         a: common_vendor.o(cancelCheckout),
         b: common_vendor.unref(safeAreaInsets).top + "px",
         c: common_assets._imports_0$1,
-        d: common_vendor.n(orderType.value === "dine" ? "active" : ""),
-        e: common_vendor.o(($event) => orderType.value = "dine"),
-        f: common_vendor.n(orderType.value === "takeout" ? "active" : ""),
-        g: common_vendor.o(($event) => orderType.value = "takeout"),
+        d: common_vendor.n(orderType.value === "pickup" ? "active" : ""),
+        e: common_vendor.o(($event) => orderType.value = "pickup"),
+        f: common_vendor.n(orderType.value === "delivery" ? "active" : ""),
+        g: common_vendor.o(($event) => orderType.value = "delivery"),
         h: common_vendor.o(goDiy),
         i: common_vendor.f(orderItems.value, (item, index, i0) => {
           return common_vendor.e({

@@ -3,7 +3,9 @@
 		<view class="drawer-mask" :class="{ 'mask-show': panelVisible }" @click="close"></view>
 		<view class="drawer-panel" :class="{ 'panel-show': panelVisible }">
 			<view class="drawer-header" :style="{ paddingTop: safeAreaInsets.top + 'px' }">
-				<view class="drawer-close" @click="close"><</view>
+				<view class="drawer-close" @click="close">
+				<text>‹</text>
+			</view>
 				<text class="drawer-title">历史订单</text>
 			</view>
 			<scroll-view scroll-y class="drawer-body">
@@ -11,15 +13,15 @@
 					v-for="(order, index) in orderList"
 					:key="order.order_no"
 					class="order-row"
-					@click="goDetail(index)"
+					@click="goDetail(order)"
 				>
 					<view class="order-row-top">
 						<text class="order-no">{{ order.order_no }}</text>
-						<text class="order-status">{{ order.status === 'paid' ? '已支付' : order.status }}</text>
+						<text class="order-status">{{ statusText(order.status) }}</text>
 					</view>
 					<view class="order-row-mid">
 						<text class="order-store">{{ order.store_name }}</text>
-						<text class="order-type">{{ order.order_type === 'takeout' ? '外带' : '堂食' }}</text>
+						<text class="order-type">{{ order.order_type === 'delivery' ? '外带' : '堂食' }}</text>
 					</view>
 					<view class="order-row-bottom">
 						<text class="order-time">{{ formatTime(order.created_at) }}</text>
@@ -35,6 +37,7 @@
 
 <script setup>
 import { ref, watch, nextTick } from 'vue';
+import { fetchOrderList } from '@/common/api/order.js';
 
 const props = defineProps({
 	show: { type: Boolean, default: false },
@@ -42,7 +45,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:show']);
 
-// 兼容部分环境无 safeAreaInsets
 const safeAreaInsets = (() => {
 	try {
 		const sys = uni.getSystemInfoSync();
@@ -55,14 +57,23 @@ const orderList = ref([]);
 const panelVisible = ref(false);
 const closeTimer = ref(null);
 
-function loadHistory() {
+async function loadHistory() {
 	try {
-		const list = uni.getStorageSync('orderHistory') || [];
+		const userId = uni.getStorageSync('userId');
+		if (!userId) {
+			orderList.value = [];
+			uni.showToast({ title: '请先登录', icon: 'none' });
+			return;
+		}
+		const list = await fetchOrderList({ userId });
 		orderList.value = Array.isArray(list) ? list : [];
 	} catch (e) {
 		orderList.value = [];
 	}
 }
+
+const statusMap = { pending: '待支付', paid: '已支付', making: '制作中', ready: '待取杯', finished: '已完成', cancelled: '已取消' };
+const statusText = (s) => statusMap[s] || s;
 
 function formatTime(ts) {
 	if (!ts) return '';
@@ -83,9 +94,9 @@ function close() {
 	}, 320);
 }
 
-function goDetail(index) {
+function goDetail(order) {
 	close();
-	uni.navigateTo({ url: '/pages/order/detail?id=local_' + index });
+	uni.navigateTo({ url: '/pages/order/detail?id=' + order.id });
 }
 
 watch(() => props.show, (val) => {
@@ -129,17 +140,17 @@ watch(() => props.show, (val) => {
 .drawer-panel {
 	position: absolute;
 	top: 0;
+	left: 0;
 	right: 0;
-	width: 100%;
 	height: 100%;
 	background: #fff;
-	box-shadow: -4rpx 0 20rpx rgba(0, 0, 0, 0.1);
 	transform: translateX(100%);
 	-webkit-transform: translateX(100%);
 	transition: transform 0.3s ease;
 	-webkit-transition: transform 0.3s ease;
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
 }
 .drawer-panel.panel-show {
 	transform: translateX(0);
@@ -160,12 +171,15 @@ watch(() => props.show, (val) => {
 .drawer-body {
 	flex: 1;
 	height: 0;
-	padding: 0 24rpx;
+	padding: 0 30rpx;
+	box-sizing: border-box;
+	width: 100%;
 }
 
 .order-row {
 	padding: 24rpx 0;
 	border-bottom: 1rpx solid #f0f0f0;
+	overflow: hidden;
 }
 .order-row-top {
 	display: flex;
@@ -173,22 +187,30 @@ watch(() => props.show, (val) => {
 	align-items: center;
 	margin-bottom: 8rpx;
 }
-.order-no { font-size: 26rpx; color: #666; }
-.order-status { font-size: 24rpx; color: #023993; font-weight: 500; }
+.order-no {
+	font-size: 26rpx;
+	color: #666;
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	margin-right: 16rpx;
+}
+.order-status { font-size: 24rpx; color: #023993; font-weight: 500; flex-shrink: 0; }
 .order-row-mid {
 	display: flex;
 	justify-content: space-between;
 	margin-bottom: 8rpx;
 }
 .order-store { font-size: 28rpx; color: #333; }
-.order-type { font-size: 24rpx; color: #999; }
+.order-type { font-size: 24rpx; color: #999; flex-shrink: 0; }
 .order-row-bottom {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 }
 .order-time { font-size: 24rpx; color: #999; }
-.order-price { font-size: 28rpx; font-weight: 600; color: #333; }
+.order-price { font-size: 28rpx; font-weight: 600; color: #333; flex-shrink: 0; }
 
 .empty-tip {
 	padding: 80rpx 0;

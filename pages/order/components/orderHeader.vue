@@ -5,7 +5,7 @@
 			<view
 				class="mode-item"
 				:class="{ active: mode === 'pickup' }"
-				@click="mode = 'pickup'"
+				@click="setMode('pickup')"
 			>
 				<text>到店取</text>
 			</view>
@@ -13,7 +13,7 @@
 			<view
 				class="mode-item"
 				:class="{ active: mode === 'delivery' }"
-				@click="mode = 'delivery'"
+				@click="setMode('delivery')"
 			>
 				<text>喜外送</text>
 			</view>
@@ -39,6 +39,41 @@
 		</view>
 	</view>
 </template>
+
+<script setup>
+import { ref, watch, onMounted, onUnmounted } from 'vue';
+
+const props = defineProps({
+	orderType: { type: String, default: 'pickup' },
+});
+const emit = defineEmits(['update:orderType']);
+
+const { safeAreaInsets } = uni.getSystemInfoSync();
+const mode = ref(props.orderType);
+
+watch(() => props.orderType, (val) => {
+	mode.value = val;
+});
+
+const setMode = (val) => {
+	mode.value = val;
+	emit('update:orderType', val);
+};
+
+const handleOrderModeChange = (val) => {
+	if (val === 'delivery' || val === 'pickup') {
+		setMode(val);
+	}
+};
+
+onMounted(() => {
+	uni.$on('orderModeChange', handleOrderModeChange);
+});
+
+onUnmounted(() => {
+	uni.$off('orderModeChange', handleOrderModeChange);
+});
+</script>
 
 <style lang="scss" scoped>
 .header {
@@ -123,26 +158,3 @@
 	color: #c0c0c0;
 }
 </style>
-
-<script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-
-const { safeAreaInsets } = uni.getSystemInfoSync();
-// 使用普通字符串 ref，避免在 JS 环境下的类型语法导致点击无效
-const mode = ref('pickup'); // 'pickup' | 'delivery'
-
-// 监听首页发来的模式切换事件（例如从首页点“外送”进入）
-const handleOrderModeChange = (val) => {
-	if (val === 'delivery' || val === 'pickup') {
-		mode.value = val;
-	}
-};
-
-onMounted(() => {
-	uni.$on('orderModeChange', handleOrderModeChange);
-});
-
-onUnmounted(() => {
-	uni.$off('orderModeChange', handleOrderModeChange);
-});
-</script>

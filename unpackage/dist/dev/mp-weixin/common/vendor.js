@@ -7053,7 +7053,7 @@ function isConsoleWritable() {
 function initRuntimeSocketService() {
   const hosts = "192.168.1.3,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_0HxuuD";
+  const id = "mp-weixin_aAWufh";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -8007,6 +8007,11 @@ const onShow = /* @__PURE__ */ createLifeCycleHook(
   1 | 2
   /* HookFlags.PAGE */
 );
+const onLoad = /* @__PURE__ */ createLifeCycleHook(
+  ON_LOAD,
+  2
+  /* HookFlags.PAGE */
+);
 class MPAnimation {
   constructor(options, _this) {
     this.options = options;
@@ -8130,6 +8135,7 @@ exports.index = index;
 exports.n = n;
 exports.nextTick$1 = nextTick$1;
 exports.o = o;
+exports.onLoad = onLoad;
 exports.onMounted = onMounted;
 exports.onShow = onShow;
 exports.onUnmounted = onUnmounted;

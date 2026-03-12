@@ -178,8 +178,7 @@
 	import cartPopup from './components/cartPopup.vue';
 	import ProductDetailPopup from './components/ProductDetailPopup.vue';
 	import CustomTabBar from '@/components/custom-tab-bar.vue';
-
-	const API_BASE = 'http://localhost:3000'; // 后端接口地址
+	import { fetchCategories as apiFetchCategories, fetchProducts as apiFetchProducts } from '@/common/api/product.js';
 
 	// --- 数据定义 ---
 	const activeCategory = ref(1);
@@ -191,7 +190,7 @@
 
 	const categories = ref([]);
 	const products = ref([]);
-	const orderType = ref('dine'); // dine 堂食 | takeout 外带，与结算页一致
+	const orderType = ref('pickup');
 
 	// --- 计算属性 ---
 	const getProductsByCategory = (catId) => products.value.filter(p => p.category_id === catId);
@@ -339,32 +338,18 @@
 
 	// 计算右侧每个分类块在滚动容器内的偏移，用于联动左侧导航
 	const fetchCategories = () => {
-		return new Promise((resolve, reject) => {
-			uni.request({
-				url: `${API_BASE}/api/categories`,
-				success: (res) => {
-					const list = res.data || [];
-					categories.value = list;
-					if (list.length > 0) {
-						activeCategory.value = list[0].id;
-					}
-					resolve();
-				},
-				fail: reject,
-			});
+		return apiFetchCategories().then((list) => {
+			const arr = list || [];
+			categories.value = arr;
+			if (arr.length > 0) {
+				activeCategory.value = arr[0].id;
+			}
 		});
 	};
 
 	const fetchProducts = () => {
-		return new Promise((resolve, reject) => {
-			uni.request({
-				url: `${API_BASE}/api/products`,
-				success: (res) => {
-					products.value = res.data || [];
-					resolve();
-				},
-				fail: reject,
-			});
+		return apiFetchProducts().then((list) => {
+			products.value = list || [];
 		});
 	};
 

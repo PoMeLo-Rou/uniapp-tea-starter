@@ -1,14 +1,14 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
+const common_api_product = require("../../common/api/product.js");
 if (!Math) {
   (orderHeader + CustomTabBar + cartPopup + ProductDetailPopup)();
 }
 const orderHeader = () => "./components/orderHeader.js";
 const cartPopup = () => "./components/cartPopup.js";
-const ProductDetailPopup = () => "./components/ProductDetailPopup2.js";
+const ProductDetailPopup = () => "./components/ProductDetailPopup.js";
 const CustomTabBar = () => "../../components/custom-tab-bar.js";
-const API_BASE = "http://localhost:3000";
 const _sfc_main = {
   __name: "order",
   setup(__props) {
@@ -20,7 +20,7 @@ const _sfc_main = {
     const isClickScrolling = common_vendor.ref(false);
     const categories = common_vendor.ref([]);
     const products = common_vendor.ref([]);
-    const orderType = common_vendor.ref("dine");
+    const orderType = common_vendor.ref("pickup");
     const getProductsByCategory = (catId) => products.value.filter((p) => p.category_id === catId);
     const getProductById = (pid) => products.value.find((p) => p.id == pid);
     const buildCartKey = (id, specs = {}) => {
@@ -142,31 +142,17 @@ const _sfc_main = {
       common_vendor.index.navigateTo({ url: "/pages/checkout/checkout" });
     };
     const fetchCategories = () => {
-      return new Promise((resolve, reject) => {
-        common_vendor.index.request({
-          url: `${API_BASE}/api/categories`,
-          success: (res) => {
-            const list = res.data || [];
-            categories.value = list;
-            if (list.length > 0) {
-              activeCategory.value = list[0].id;
-            }
-            resolve();
-          },
-          fail: reject
-        });
+      return common_api_product.fetchCategories().then((list) => {
+        const arr = list || [];
+        categories.value = arr;
+        if (arr.length > 0) {
+          activeCategory.value = arr[0].id;
+        }
       });
     };
     const fetchProducts = () => {
-      return new Promise((resolve, reject) => {
-        common_vendor.index.request({
-          url: `${API_BASE}/api/products`,
-          success: (res) => {
-            products.value = res.data || [];
-            resolve();
-          },
-          fail: reject
-        });
+      return common_api_product.fetchProducts().then((list) => {
+        products.value = list || [];
       });
     };
     const calcCategoryPositions = () => {

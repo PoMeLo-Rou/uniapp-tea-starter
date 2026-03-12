@@ -24,15 +24,15 @@
 		<!-- 堂食/外带 -->
 		<view class="block order-type-block">
 			<view
-				:class="['type-btn', orderType === 'dine' ? 'active' : '']"
-				@click="orderType = 'dine'"
+				:class="['type-btn', orderType === 'pickup' ? 'active' : '']"
+				@click="orderType = 'pickup'"
 			>
 				<text class="type-main">堂食</text>
 				<text class="type-sub">店内现喝</text>
 			</view>
 			<view
-				:class="['type-btn', orderType === 'takeout' ? 'active' : '']"
-				@click="orderType = 'takeout'"
+				:class="['type-btn', orderType === 'delivery' ? 'active' : '']"
+				@click="orderType = 'delivery'"
 			>
 				<text class="type-main">外带</text>
 				<text class="type-sub">纸袋打包 ></text>
@@ -107,12 +107,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { createOrder, payOrder } from '@/common/api/order.js';
 const { safeAreaInsets } = uni.getSystemInfoSync();
 
-const API_BASE = 'http://localhost:3000';
-
 const orderItems = ref([]);
-const orderType = ref('dine');
+const orderType = ref('pickup');
 const paying = ref(false);
 
 const totalPrice = computed(() => {
@@ -171,23 +170,6 @@ const cancelCheckout = () => {
 	}
 };
 
-/** 封装 uni.request 为 Promise */
-const request = (options) => {
-	return new Promise((resolve, reject) => {
-		uni.request({
-			...options,
-			success: (res) => {
-				if (res.statusCode >= 200 && res.statusCode < 300) {
-					resolve(res.data);
-				} else {
-					reject(new Error(res.data?.message || `请求失败 (${res.statusCode})`));
-				}
-			},
-			fail: (err) => reject(new Error(err.errMsg || '网络错误')),
-		});
-	});
-};
-
 /**
  * 支付流程：
  * 1. POST /api/orders        → 创建订单，拿到 orderId
@@ -206,16 +188,12 @@ const doPay = async () => {
 
 	try {
 		// 第一步：创建订单
-		const orderRes = await request({
-			url: `${API_BASE}/api/orders`,
-			method: 'POST',
-			header: { 'Content-Type': 'application/json' },
-			data: {
-				userId: 1,
-				items: orderItems.value,
-				orderType: orderType.value,
-				totalPrice: Number(totalPrice.value),
-			},
+		const storedUserId = uni.getStorageSync('userId') || 1;
+		const orderRes = await createOrder({
+			userId: storedUserId,
+			items: orderItems.value,
+			orderType: orderType.value,
+			totalPrice: Number(totalPrice.value),
 		});
 
 		const { orderId, orderNo } = orderRes;
@@ -223,11 +201,7 @@ const doPay = async () => {
 
 		// 第二步：模拟支付
 		uni.showLoading({ title: '支付中...', mask: true });
-		await request({
-			url: `${API_BASE}/api/orders/${orderId}/pay`,
-			method: 'POST',
-			header: { 'Content-Type': 'application/json' },
-		});
+		await payOrder(orderId);
 
 		console.log('[checkout] 支付成功, orderId:', orderId);
 		uni.hideLoading();

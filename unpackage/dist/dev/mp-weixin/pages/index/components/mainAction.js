@@ -7,7 +7,7 @@ const _sfc_main = {
       common_vendor.index.switchTab({
         url: "/pages/order/order",
         success: () => {
-          const mode = type === "takeout" ? "delivery" : "pickup";
+          const mode = type;
           setTimeout(() => {
             common_vendor.index.$emit("orderModeChange", mode);
           }, 200);
@@ -17,7 +17,7 @@ const _sfc_main = {
     return (_ctx, _cache) => {
       return {
         a: common_vendor.o(($event) => goToOrder("self")),
-        b: common_vendor.o(($event) => goToOrder("takeout"))
+        b: common_vendor.o(($event) => goToOrder("delivery"))
       };
     };
   }

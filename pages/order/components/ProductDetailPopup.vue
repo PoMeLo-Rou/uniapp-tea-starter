@@ -59,8 +59,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
-
-const API_BASE = 'http://localhost:3000'; // 根据实际服务地址调整
+import { fetchProductSpecs } from '@/common/api/product.js';
 
 const emit = defineEmits(['confirm']);
 
@@ -133,42 +132,38 @@ const setIce = (opt) => {
 	currentIceId.value = opt.id;
 };
 
-const fetchSpecs = (productId) => {
+const fetchSpecs = async (productId) => {
 	if (!productId) return;
-	uni.request({
-		url: `${API_BASE}/api/products/${productId}/specs`,
-		method: 'GET',
-		success: (res) => {
-			specGroups.value = res.data || [];
+	try {
+		const data = await fetchProductSpecs(productId);
+		specGroups.value = data || [];
 
-			// 默认选中每个分组的第一个选项
-			const s = sweetGroup.value;
-			currentSweetId.value = s && s.options.length ? s.options[0].id : null;
+		// 默认选中每个分组的第一个选项
+		const s = sweetGroup.value;
+		currentSweetId.value = s && s.options.length ? s.options[0].id : null;
 
-			const t = tempGroup.value;
-			if (t && t.options.length) {
-				// 优先选中“冰”
-				const cold = t.options.find((o) => o.code === 'temp_cold');
-				currentTempId.value = (cold || t.options[0]).id;
-			} else {
-				currentTempId.value = null;
-			}
-
-			const i = iceGroup.value;
-			if (i && i.options.length && showIceGroup.value) {
-				currentIceId.value = i.options[0].id;
-			} else {
-				currentIceId.value = null;
-			}
-		},
-		fail: (err) => {
-			console.error('fetch specs error:', err);
-			specGroups.value = [];
-			currentSweetId.value = null;
+		const t = tempGroup.value;
+		if (t && t.options.length) {
+			// 优先选中“冰”
+			const cold = t.options.find((o) => o.code === 'temp_cold');
+			currentTempId.value = (cold || t.options[0]).id;
+		} else {
 			currentTempId.value = null;
+		}
+
+		const i = iceGroup.value;
+		if (i && i.options.length && showIceGroup.value) {
+			currentIceId.value = i.options[0].id;
+		} else {
 			currentIceId.value = null;
-		},
-	});
+		}
+	} catch (err) {
+		console.error('fetch specs error:', err);
+		specGroups.value = [];
+		currentSweetId.value = null;
+		currentTempId.value = null;
+		currentIceId.value = null;
+	}
 };
 
 const open = (product) => {

@@ -2,12 +2,25 @@
 const common_vendor = require("../../../common/vendor.js");
 const _sfc_main = {
   __name: "orderHeader",
-  setup(__props) {
+  props: {
+    orderType: { type: String, default: "pickup" }
+  },
+  emits: ["update:orderType"],
+  setup(__props, { emit: __emit }) {
+    const props = __props;
+    const emit = __emit;
     const { safeAreaInsets } = common_vendor.index.getSystemInfoSync();
-    const mode = common_vendor.ref("pickup");
+    const mode = common_vendor.ref(props.orderType);
+    common_vendor.watch(() => props.orderType, (val) => {
+      mode.value = val;
+    });
+    const setMode = (val) => {
+      mode.value = val;
+      emit("update:orderType", val);
+    };
     const handleOrderModeChange = (val) => {
       if (val === "delivery" || val === "pickup") {
-        mode.value = val;
+        setMode(val);
       }
     };
     common_vendor.onMounted(() => {
@@ -19,9 +32,9 @@ const _sfc_main = {
     return (_ctx, _cache) => {
       return common_vendor.e({
         a: mode.value === "pickup" ? 1 : "",
-        b: common_vendor.o(($event) => mode.value = "pickup"),
+        b: common_vendor.o(($event) => setMode("pickup")),
         c: mode.value === "delivery" ? 1 : "",
-        d: common_vendor.o(($event) => mode.value = "delivery"),
+        d: common_vendor.o(($event) => setMode("delivery")),
         e: mode.value === "pickup"
       }, mode.value === "pickup" ? {} : {}, {
         f: common_vendor.unref(safeAreaInsets).top + "px"

@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("../common/vendor.js");
+const common_api_order = require("../common/api/order.js");
 const _sfc_main = {
   __name: "OrderHistoryDrawer",
   props: {
@@ -20,14 +21,22 @@ const _sfc_main = {
     const orderList = common_vendor.ref([]);
     const panelVisible = common_vendor.ref(false);
     const closeTimer = common_vendor.ref(null);
-    function loadHistory() {
+    async function loadHistory() {
       try {
-        const list = common_vendor.index.getStorageSync("orderHistory") || [];
+        const userId = common_vendor.index.getStorageSync("userId");
+        if (!userId) {
+          orderList.value = [];
+          common_vendor.index.showToast({ title: "请先登录", icon: "none" });
+          return;
+        }
+        const list = await common_api_order.fetchOrderList({ userId });
         orderList.value = Array.isArray(list) ? list : [];
       } catch (e) {
         orderList.value = [];
       }
     }
+    const statusMap = { pending: "待支付", paid: "已支付", making: "制作中", ready: "待取杯", finished: "已完成", cancelled: "已取消" };
+    const statusText = (s) => statusMap[s] || s;
     function formatTime(ts) {
       if (!ts)
         return "";
@@ -47,9 +56,9 @@ const _sfc_main = {
         closeTimer.value = null;
       }, 320);
     }
-    function goDetail(index) {
+    function goDetail(order) {
       close();
-      common_vendor.index.navigateTo({ url: "/pages/order/detail?id=local_" + index });
+      common_vendor.index.navigateTo({ url: "/pages/order/detail?id=" + order.id });
     }
     common_vendor.watch(() => props.show, (val) => {
       if (val) {
@@ -75,13 +84,13 @@ const _sfc_main = {
         f: common_vendor.f(orderList.value, (order, index, i0) => {
           return {
             a: common_vendor.t(order.order_no),
-            b: common_vendor.t(order.status === "paid" ? "已支付" : order.status),
+            b: common_vendor.t(statusText(order.status)),
             c: common_vendor.t(order.store_name),
-            d: common_vendor.t(order.order_type === "takeout" ? "外带" : "堂食"),
+            d: common_vendor.t(order.order_type === "delivery" ? "外带" : "堂食"),
             e: common_vendor.t(formatTime(order.created_at)),
             f: common_vendor.t(order.total_amount),
             g: order.order_no,
-            h: common_vendor.o(($event) => goDetail(index), order.order_no)
+            h: common_vendor.o(($event) => goDetail(order), order.order_no)
           };
         }),
         g: orderList.value.length === 0

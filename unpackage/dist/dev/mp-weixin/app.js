@@ -6,8 +6,8 @@ if (!Math) {
   "./pages/index/index.js";
   "./pages/order/order.js";
   "./pages/mine/mine.js";
-  "./pages/order/components/ProductDetailPopup.js";
   "./pages/checkout/checkout.js";
+  "./pages/order/detail.js";
 }
 const _sfc_main = {
   onLaunch: function() {

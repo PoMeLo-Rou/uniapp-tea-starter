@@ -8,7 +8,7 @@
         </view>
       </view>
       <view class="divider"></view>
-      <view class="action-card" @click="goToOrder('takeout')">
+      <view class="action-card" @click="goToOrder('delivery')">
         <image class="action-icon" src="https://img.icons8.com/color/96/delivery-man.png" mode="aspectFit"></image>
         <view class="action-text">
           <text class="title">外送</text>
@@ -24,7 +24,7 @@
       url: '/pages/order/order',
       success: () => {
         // 通过全局事件通知点单页的 header 切换模式
-        const mode = type === 'takeout' ? 'delivery' : 'pickup';
+        const mode = type;
         setTimeout(() => {
           uni.$emit('orderModeChange', mode);
         }, 200);

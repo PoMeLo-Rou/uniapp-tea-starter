@@ -2,10 +2,10 @@
 	<view class="container">
 	  <view class="user-section" :style="{ paddingTop: safeAreaInsets.top + 'px' }">
 		<view class="user-info">
-		  <image class="avatar" src="https://img.icons8.com/color/96/user-male-circle--v1.png" mode="aspectFill"></image>
+		  <image class="avatar" :src="userAvatar" mode="aspectFill"></image>
 		  <view class="meta">
-			<text class="nickname">茶友_8293</text>
-			<text class="level-tag">V2 黄金会员</text>
+			<text class="nickname">{{ isLoggedIn ? nickname : '点击下方按钮登录' }}</text>
+			<text v-if="isLoggedIn" class="level-tag">会员</text>
 		  </view>
 		</view>
 		<view class="settings-icon">⚙️</view>
@@ -62,7 +62,8 @@
 		</view>
 	  </view>
 	  
-	  <button class="logout-btn">退出登录</button>
+	  <button class="logout-btn" @click="onLogin" v-if="!isLoggedIn">微信登录</button>
+	  <button class="logout-btn" @click="onLogout" v-else>退出登录</button>
 		<CustomTabBar current-path="/pages/mine/mine" />
 
 		<!-- 历史订单抽屉 -->
@@ -72,6 +73,10 @@
   
   <script setup>
   import { ref } from 'vue';
+  import { wxLogin } from '@/common/api/auth.js';
+  import CustomTabBar from '@/components/custom-tab-bar.vue';
+  import OrderHistoryDrawer from '@/components/OrderHistoryDrawer.vue';
+
   const safeAreaInsets = (() => {
     try {
       const sys = uni.getSystemInfoSync();
@@ -80,13 +85,28 @@
       return { top: 0, bottom: 0, left: 0, right: 0 };
     }
   })();
-  import CustomTabBar from '@/components/custom-tab-bar.vue';
-  import OrderHistoryDrawer from '@/components/OrderHistoryDrawer.vue';
 
   const showOrderDrawer = ref(false);
+  const isLoggedIn = ref(false);
+  const nickname = ref('游客');
+  const userAvatar = ref('https://img.icons8.com/color/96/user-male-circle--v1.png');
+
+  // 初始化本地登录状态
+  try {
+    const storedUser = uni.getStorageSync('userInfo');
+    if (storedUser && storedUser.userId) {
+      isLoggedIn.value = true;
+      nickname.value = storedUser.nickname || '茶友';
+      userAvatar.value = storedUser.avatar || userAvatar.value;
+    }
+  } catch (e) {}
 
   const handleMenuClick = (type) => {
 	if (type === 'order') {
+	  if (!isLoggedIn.value) {
+		uni.showToast({ title: '请先登录', icon: 'none' });
+		return;
+	  }
 	  showOrderDrawer.value = true;
 	  return;
 	}
@@ -94,6 +114,76 @@
 	  title: `点击了 ${type} 功能`,
 	  icon: 'none'
 	});
+  };
+
+  // 微信登录：先拿 code，再拉取微信头像昵称，最后调用后端
+  const onLogin = () => {
+    uni.login({
+      provider: 'weixin',
+      success: (loginRes) => {
+        const code = loginRes.code;
+        if (!code) {
+          uni.showToast({ title: '登录失败(code)', icon: 'none' });
+          return;
+        }
+
+        const getProfile = (cb) => {
+          if (uni.getUserProfile) {
+            uni.getUserProfile({
+              desc: '用于完善会员资料',
+              success: (res) => cb(null, res.userInfo || {}),
+              fail: () => cb(null, {}), // 用户拒绝也继续登录，只是不用微信头像昵称
+            });
+          } else {
+            // 兼容老版本：退化为 getUserInfo
+            uni.getUserInfo({
+              success: (res) => cb(null, res.userInfo || {}),
+              fail: () => cb(null, {}),
+            });
+          }
+        };
+
+        getProfile((err, userInfo) => {
+          const nickName = (userInfo && userInfo.nickName) || nickname.value;
+          const avatarUrl = (userInfo && userInfo.avatarUrl) || userAvatar.value;
+
+          uni.showLoading({ title: '登录中...', mask: true });
+          wxLogin({
+            code,
+            nickName,
+            avatarUrl,
+          }).then((data) => {
+            uni.hideLoading();
+            console.log('userInfo from wechat:', userInfo);
+            console.log('data from backend:', data);
+            if (!data.userId) {
+              uni.showToast({ title: '登录失败', icon: 'none' });
+              return;
+            }
+            isLoggedIn.value = true;
+            nickname.value = data.nickname || nickName || '茶友';
+            userAvatar.value = data.avatar || avatarUrl || userAvatar.value;
+            uni.setStorageSync('userInfo', data);
+            uni.setStorageSync('userId', data.userId);
+            uni.showToast({ title: '登录成功', icon: 'success' });
+          }).catch(() => {
+            uni.hideLoading();
+            uni.showToast({ title: '网络异常', icon: 'none' });
+          });
+        });
+      },
+      fail: () => {
+        uni.showToast({ title: '登录取消', icon: 'none' });
+      },
+    });
+  };
+
+  const onLogout = () => {
+    isLoggedIn.value = false;
+    nickname.value = '游客';
+    userAvatar.value = 'https://img.icons8.com/color/96/user-male-circle--v1.png';
+    uni.removeStorageSync('userInfo');
+    uni.removeStorageSync('userId');
   };
   </script>
   
