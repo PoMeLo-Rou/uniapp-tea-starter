@@ -72,10 +72,13 @@
   </template>
   
   <script setup>
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
   import { wxLogin } from '@/common/api/auth.js';
+  import { useMemberStore } from '@/stores/modules/member.js';
   import CustomTabBar from '@/components/custom-tab-bar.vue';
   import OrderHistoryDrawer from '@/components/OrderHistoryDrawer.vue';
+
+  const memberStore = useMemberStore();
 
   const safeAreaInsets = (() => {
     try {
@@ -87,19 +90,9 @@
   })();
 
   const showOrderDrawer = ref(false);
-  const isLoggedIn = ref(false);
-  const nickname = ref('游客');
-  const userAvatar = ref('https://img.icons8.com/color/96/user-male-circle--v1.png');
-
-  // 初始化本地登录状态
-  try {
-    const storedUser = uni.getStorageSync('userInfo');
-    if (storedUser && storedUser.userId) {
-      isLoggedIn.value = true;
-      nickname.value = storedUser.nickname || '茶友';
-      userAvatar.value = storedUser.avatar || userAvatar.value;
-    }
-  } catch (e) {}
+  const isLoggedIn = computed(() => memberStore.isLoggedIn);
+  const nickname = computed(() => memberStore.nickname || '游客');
+  const userAvatar = computed(() => memberStore.avatar || 'https://img.icons8.com/color/96/user-male-circle--v1.png');
 
   const handleMenuClick = (type) => {
 	if (type === 'order') {
@@ -154,17 +147,15 @@
             avatarUrl,
           }).then((data) => {
             uni.hideLoading();
-            console.log('userInfo from wechat:', userInfo);
-            console.log('data from backend:', data);
             if (!data.userId) {
               uni.showToast({ title: '登录失败', icon: 'none' });
               return;
             }
-            isLoggedIn.value = true;
-            nickname.value = data.nickname || nickName || '茶友';
-            userAvatar.value = data.avatar || avatarUrl || userAvatar.value;
-            uni.setStorageSync('userInfo', data);
-            uni.setStorageSync('userId', data.userId);
+            memberStore.setUserInfo({
+              ...data,
+              nickname: data.nickname || nickName || '茶友',
+              avatar: data.avatar || avatarUrl,
+            });
             uni.showToast({ title: '登录成功', icon: 'success' });
           }).catch(() => {
             uni.hideLoading();
@@ -179,11 +170,7 @@
   };
 
   const onLogout = () => {
-    isLoggedIn.value = false;
-    nickname.value = '游客';
-    userAvatar.value = 'https://img.icons8.com/color/96/user-male-circle--v1.png';
-    uni.removeStorageSync('userInfo');
-    uni.removeStorageSync('userId');
+    memberStore.clearUserInfo();
   };
   </script>
   

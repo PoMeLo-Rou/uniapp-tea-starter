@@ -1,6 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const common_api_auth = require("../../common/api/auth.js");
+const stores_modules_member = require("../../stores/modules/member.js");
 if (!Math) {
   (CustomTabBar + OrderHistoryDrawer)();
 }
@@ -9,6 +10,7 @@ const OrderHistoryDrawer = () => "../../components/OrderHistoryDrawer.js";
 const _sfc_main = {
   __name: "mine",
   setup(__props) {
+    const memberStore = stores_modules_member.useMemberStore();
     const safeAreaInsets = (() => {
       try {
         const sys = common_vendor.index.getSystemInfoSync();
@@ -18,18 +20,9 @@ const _sfc_main = {
       }
     })();
     const showOrderDrawer = common_vendor.ref(false);
-    const isLoggedIn = common_vendor.ref(false);
-    const nickname = common_vendor.ref("游客");
-    const userAvatar = common_vendor.ref("https://img.icons8.com/color/96/user-male-circle--v1.png");
-    try {
-      const storedUser = common_vendor.index.getStorageSync("userInfo");
-      if (storedUser && storedUser.userId) {
-        isLoggedIn.value = true;
-        nickname.value = storedUser.nickname || "茶友";
-        userAvatar.value = storedUser.avatar || userAvatar.value;
-      }
-    } catch (e) {
-    }
+    const isLoggedIn = common_vendor.computed(() => memberStore.isLoggedIn);
+    const nickname = common_vendor.computed(() => memberStore.nickname || "游客");
+    const userAvatar = common_vendor.computed(() => memberStore.avatar || "https://img.icons8.com/color/96/user-male-circle--v1.png");
     const handleMenuClick = (type) => {
       if (type === "order") {
         if (!isLoggedIn.value) {
@@ -78,17 +71,15 @@ const _sfc_main = {
               avatarUrl
             }).then((data) => {
               common_vendor.index.hideLoading();
-              common_vendor.index.__f__("log", "at pages/mine/mine.vue:157", "userInfo from wechat:", userInfo);
-              common_vendor.index.__f__("log", "at pages/mine/mine.vue:158", "data from backend:", data);
               if (!data.userId) {
                 common_vendor.index.showToast({ title: "登录失败", icon: "none" });
                 return;
               }
-              isLoggedIn.value = true;
-              nickname.value = data.nickname || nickName || "茶友";
-              userAvatar.value = data.avatar || avatarUrl || userAvatar.value;
-              common_vendor.index.setStorageSync("userInfo", data);
-              common_vendor.index.setStorageSync("userId", data.userId);
+              memberStore.setUserInfo({
+                ...data,
+                nickname: data.nickname || nickName || "茶友",
+                avatar: data.avatar || avatarUrl
+              });
               common_vendor.index.showToast({ title: "登录成功", icon: "success" });
             }).catch(() => {
               common_vendor.index.hideLoading();
@@ -102,11 +93,7 @@ const _sfc_main = {
       });
     };
     const onLogout = () => {
-      isLoggedIn.value = false;
-      nickname.value = "游客";
-      userAvatar.value = "https://img.icons8.com/color/96/user-male-circle--v1.png";
-      common_vendor.index.removeStorageSync("userInfo");
-      common_vendor.index.removeStorageSync("userId");
+      memberStore.clearUserInfo();
     };
     return (_ctx, _cache) => {
       return common_vendor.e({

@@ -38,6 +38,7 @@
 <script setup>
 import { ref, watch, nextTick } from 'vue';
 import { fetchOrderList } from '@/common/api/order.js';
+import { useMemberStore } from '@/stores/modules/member.js';
 
 const props = defineProps({
 	show: { type: Boolean, default: false },
@@ -59,13 +60,13 @@ const closeTimer = ref(null);
 
 async function loadHistory() {
 	try {
-		const userId = uni.getStorageSync('userId');
-		if (!userId) {
+		const memberStore = useMemberStore();
+		if (!memberStore.userId) {
 			orderList.value = [];
 			uni.showToast({ title: '请先登录', icon: 'none' });
 			return;
 		}
-		const list = await fetchOrderList({ userId });
+		const list = await fetchOrderList({ userId: memberStore.userId });
 		orderList.value = Array.isArray(list) ? list : [];
 	} catch (e) {
 		orderList.value = [];

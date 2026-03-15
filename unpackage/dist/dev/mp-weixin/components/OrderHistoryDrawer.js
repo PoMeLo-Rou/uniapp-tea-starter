@@ -1,6 +1,7 @@
 "use strict";
 const common_vendor = require("../common/vendor.js");
 const common_api_order = require("../common/api/order.js");
+const stores_modules_member = require("../stores/modules/member.js");
 const _sfc_main = {
   __name: "OrderHistoryDrawer",
   props: {
@@ -23,13 +24,13 @@ const _sfc_main = {
     const closeTimer = common_vendor.ref(null);
     async function loadHistory() {
       try {
-        const userId = common_vendor.index.getStorageSync("userId");
-        if (!userId) {
+        const memberStore = stores_modules_member.useMemberStore();
+        if (!memberStore.userId) {
           orderList.value = [];
           common_vendor.index.showToast({ title: "请先登录", icon: "none" });
           return;
         }
-        const list = await common_api_order.fetchOrderList({ userId });
+        const list = await common_api_order.fetchOrderList({ userId: memberStore.userId });
         orderList.value = Array.isArray(list) ? list : [];
       } catch (e) {
         orderList.value = [];

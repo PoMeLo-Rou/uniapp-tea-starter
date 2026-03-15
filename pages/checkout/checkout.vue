@@ -108,6 +108,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { createOrder, payOrder } from '@/common/api/order.js';
+import { useMemberStore } from '@/stores/modules/member.js';
 const { safeAreaInsets } = uni.getSystemInfoSync();
 
 const orderItems = ref([]);
@@ -188,7 +189,7 @@ const doPay = async () => {
 
 	try {
 		// 第一步：创建订单
-		const storedUserId = uni.getStorageSync('userId') || 1;
+		const { userId: storedUserId = 1 } = useMemberStore();
 		const orderRes = await createOrder({
 			userId: storedUserId,
 			items: orderItems.value,
