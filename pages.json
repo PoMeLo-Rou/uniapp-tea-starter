@@ -42,6 +42,13 @@
 			"navigationBarTitleText": "订单详情",
 			"navigationStyle": "custom"
 		}
+	},
+	{
+		"path": "pages/admin/product-manage",
+		"style": {
+			"navigationBarTitleText": "管理员商品管理",
+			"navigationStyle": "custom"
+		}
 	}
   ],
   "tabBar": {

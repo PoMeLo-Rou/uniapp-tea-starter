@@ -5,6 +5,7 @@
     "banner-box": "./components/bannerBox",
     "member-card": "./components/memberCard",
     "main-action": "./components/mainAction",
-    "custom-tab-bar": "../../components/custom-tab-bar"
+    "custom-tab-bar": "../../components/custom-tab-bar",
+    "ai-chat": "../../components/AiChat"
   }
 }

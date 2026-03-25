@@ -25,6 +25,7 @@
 		</view>
 
 		<mainAction @click="goToOrder" />
+		<AiChat />
 		<CustomTabBar current-path="/pages/index/index" />
 	</view>
 </template>
@@ -35,6 +36,7 @@ import bannerBox from './components/bannerBox.vue';
 import memberCard from './components/memberCard.vue';
 import mainAction from './components/mainAction.vue';
 import CustomTabBar from '@/components/custom-tab-bar.vue';
+import AiChat from '@/components/AiChat.vue';
 
 // 轮播图数据（空则使用 bannerBox 内部默认图）
 const bannerData = ref([

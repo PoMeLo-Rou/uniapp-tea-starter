@@ -5,7 +5,7 @@
 		  <image class="avatar" :src="userAvatar" mode="aspectFill"></image>
 		  <view class="meta">
 			<text class="nickname">{{ isLoggedIn ? nickname : '点击下方按钮登录' }}</text>
-			<text v-if="isLoggedIn" class="level-tag">会员</text>
+			<text v-if="isLoggedIn" class="level-tag">{{ isAdmin ? '管理员' : '会员' }}</text>
 		  </view>
 		</view>
 		<view class="settings-icon">⚙️</view>
@@ -13,7 +13,7 @@
   
 	  <view class="asset-card">
 		<view class="asset-item">
-		  <text class="num">128</text>
+		  <text class="num">{{ points }}</text>
 		  <text class="label">积分</text>
 		</view>
 		<view class="divider"></view>
@@ -60,9 +60,17 @@
 		  </view>
 		  <text class="arrow">></text>
 		</view>
+
+		<view v-if="isAdmin" class="menu-item" @click="handleMenuClick('admin')">
+		  <view class="left">
+			<text class="icon">🛠️</text>
+			<text class="text">管理员商品管理</text>
+		  </view>
+		  <text class="arrow">></text>
+		</view>
 	  </view>
 	  
-	  <button class="logout-btn" @click="onLogin" v-if="!isLoggedIn">微信登录</button>
+	  <button class="logout-btn" open-type="getPhoneNumber" @getphonenumber="onGetPhoneNumber" v-if="!isLoggedIn">微信手机号登录</button>
 	  <button class="logout-btn" @click="onLogout" v-else>退出登录</button>
 		<CustomTabBar current-path="/pages/mine/mine" />
 
@@ -73,7 +81,7 @@
   
   <script setup>
   import { ref, computed } from 'vue';
-  import { wxLogin } from '@/common/api/auth.js';
+  import { wxPhoneLogin } from '@/common/api/auth.js';
   import { useMemberStore } from '@/stores/modules/member.js';
   import CustomTabBar from '@/components/custom-tab-bar.vue';
   import OrderHistoryDrawer from '@/components/OrderHistoryDrawer.vue';
@@ -91,7 +99,9 @@
 
   const showOrderDrawer = ref(false);
   const isLoggedIn = computed(() => memberStore.isLoggedIn);
+  const isAdmin = computed(() => memberStore.isAdmin);
   const nickname = computed(() => memberStore.nickname || '游客');
+  const points = computed(() => memberStore.points || 0);
   const userAvatar = computed(() => memberStore.avatar || 'https://img.icons8.com/color/96/user-male-circle--v1.png');
 
   const handleMenuClick = (type) => {
@@ -103,64 +113,73 @@
 	  showOrderDrawer.value = true;
 	  return;
 	}
+	if (type === 'admin') {
+	  if (!isLoggedIn.value) {
+		uni.showToast({ title: '请先登录', icon: 'none' });
+		return;
+	  }
+	  if (!isAdmin.value) {
+		uni.showToast({ title: '无管理员权限', icon: 'none' });
+		return;
+	  }
+	  uni.navigateTo({ url: '/pages/admin/product-manage' });
+	  return;
+	}
 	uni.showToast({
 	  title: `点击了 ${type} 功能`,
 	  icon: 'none'
 	});
   };
 
-  // 微信登录：先拿 code，再拉取微信头像昵称，最后调用后端
-  const onLogin = () => {
+  // 微信手机号登录：手机号授权 + code 换 openid
+  const onGetPhoneNumber = (e) => {
+    console.log('[mine] onGetPhoneNumber callback triggered:', e);
+    const detail = e && e.detail ? e.detail : {};
+    const phoneCode = detail.code || '';
+    const encryptedData = detail.encryptedData || '';
+    const iv = detail.iv || '';
+    const ok = String(detail.errMsg || '').includes(':ok');
+    console.log('[mine] phone auth detail:', {
+      errMsg: detail.errMsg,
+      ok,
+      phoneCodeLen: phoneCode ? String(phoneCode).length : 0,
+      encryptedDataLen: encryptedData ? String(encryptedData).length : 0,
+      ivLen: iv ? String(iv).length : 0,
+    });
+    if (!ok) {
+      uni.showToast({ title: '你已取消手机号授权', icon: 'none' });
+      return;
+    }
+
     uni.login({
       provider: 'weixin',
       success: (loginRes) => {
         const code = loginRes.code;
+        console.log('[mine] uni.login success, codeLen=', code ? String(code).length : 0);
         if (!code) {
           uni.showToast({ title: '登录失败(code)', icon: 'none' });
           return;
         }
 
-        const getProfile = (cb) => {
-          if (uni.getUserProfile) {
-            uni.getUserProfile({
-              desc: '用于完善会员资料',
-              success: (res) => cb(null, res.userInfo || {}),
-              fail: () => cb(null, {}), // 用户拒绝也继续登录，只是不用微信头像昵称
-            });
-          } else {
-            // 兼容老版本：退化为 getUserInfo
-            uni.getUserInfo({
-              success: (res) => cb(null, res.userInfo || {}),
-              fail: () => cb(null, {}),
-            });
+        uni.showLoading({ title: '登录中...', mask: true });
+        wxPhoneLogin({
+          code,
+          phoneCode,
+          encryptedData,
+          iv,
+          nickName: nickname.value || '茶友',
+          avatarUrl: userAvatar.value || '',
+        }).then((data) => {
+          uni.hideLoading();
+          if (!data.userId) {
+            uni.showToast({ title: '登录失败', icon: 'none' });
+            return;
           }
-        };
-
-        getProfile((err, userInfo) => {
-          const nickName = (userInfo && userInfo.nickName) || nickname.value;
-          const avatarUrl = (userInfo && userInfo.avatarUrl) || userAvatar.value;
-
-          uni.showLoading({ title: '登录中...', mask: true });
-          wxLogin({
-            code,
-            nickName,
-            avatarUrl,
-          }).then((data) => {
-            uni.hideLoading();
-            if (!data.userId) {
-              uni.showToast({ title: '登录失败', icon: 'none' });
-              return;
-            }
-            memberStore.setUserInfo({
-              ...data,
-              nickname: data.nickname || nickName || '茶友',
-              avatar: data.avatar || avatarUrl,
-            });
-            uni.showToast({ title: '登录成功', icon: 'success' });
-          }).catch(() => {
-            uni.hideLoading();
-            uni.showToast({ title: '网络异常', icon: 'none' });
-          });
+          memberStore.setUserInfo(data);
+          uni.showToast({ title: '登录成功', icon: 'success' });
+        }).catch((err) => {
+          uni.hideLoading();
+          uni.showToast({ title: err?.message || '网络异常', icon: 'none' });
         });
       },
       fail: () => {

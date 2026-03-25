@@ -10,6 +10,7 @@ if (!Math) {
   "./pages/mine/mine.js";
   "./pages/checkout/checkout.js";
   "./pages/order/detail.js";
+  "./pages/admin/product-manage.js";
 }
 const _sfc_main = {
   onLaunch: function() {

@@ -1,11 +1,19 @@
 "use strict";
 const common_vendor = require("../vendor.js");
-const API_BASE = "http://localhost:8080";
-const getApiBase = () => API_BASE;
+const MINI_DEV_BASE = "http://192.168.1.17:8080";
+function getApiBaseUrl() {
+  if (typeof process !== "undefined" && process.env) {
+    if (process.env.VUE_APP_API_BASE)
+      return process.env.VUE_APP_API_BASE;
+    return "http://localhost:8080";
+  }
+  return MINI_DEV_BASE;
+}
+const getApiBase = getApiBaseUrl;
 const httpInterceptor = {
   invoke(options) {
     if (!options.url.startsWith("http")) {
-      options.url = API_BASE + options.url;
+      options.url = getApiBaseUrl() + options.url;
     }
     options.timeout = 1e4;
     options.header = {

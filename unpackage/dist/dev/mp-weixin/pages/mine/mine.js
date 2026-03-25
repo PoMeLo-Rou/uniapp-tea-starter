@@ -21,7 +21,9 @@ const _sfc_main = {
     })();
     const showOrderDrawer = common_vendor.ref(false);
     const isLoggedIn = common_vendor.computed(() => memberStore.isLoggedIn);
+    const isAdmin = common_vendor.computed(() => memberStore.isAdmin);
     const nickname = common_vendor.computed(() => memberStore.nickname || "游客");
+    const points = common_vendor.computed(() => memberStore.points || 0);
     const userAvatar = common_vendor.computed(() => memberStore.avatar || "https://img.icons8.com/color/96/user-male-circle--v1.png");
     const handleMenuClick = (type) => {
       if (type === "order") {
@@ -32,59 +34,69 @@ const _sfc_main = {
         showOrderDrawer.value = true;
         return;
       }
+      if (type === "admin") {
+        if (!isLoggedIn.value) {
+          common_vendor.index.showToast({ title: "请先登录", icon: "none" });
+          return;
+        }
+        if (!isAdmin.value) {
+          common_vendor.index.showToast({ title: "无管理员权限", icon: "none" });
+          return;
+        }
+        common_vendor.index.navigateTo({ url: "/pages/admin/product-manage" });
+        return;
+      }
       common_vendor.index.showToast({
         title: `点击了 ${type} 功能`,
         icon: "none"
       });
     };
-    const onLogin = () => {
+    const onGetPhoneNumber = (e) => {
+      common_vendor.index.__f__("log", "at pages/mine/mine.vue:136", "[mine] onGetPhoneNumber callback triggered:", e);
+      const detail = e && e.detail ? e.detail : {};
+      const phoneCode = detail.code || "";
+      const encryptedData = detail.encryptedData || "";
+      const iv = detail.iv || "";
+      const ok = String(detail.errMsg || "").includes(":ok");
+      common_vendor.index.__f__("log", "at pages/mine/mine.vue:142", "[mine] phone auth detail:", {
+        errMsg: detail.errMsg,
+        ok,
+        phoneCodeLen: phoneCode ? String(phoneCode).length : 0,
+        encryptedDataLen: encryptedData ? String(encryptedData).length : 0,
+        ivLen: iv ? String(iv).length : 0
+      });
+      if (!ok) {
+        common_vendor.index.showToast({ title: "你已取消手机号授权", icon: "none" });
+        return;
+      }
       common_vendor.index.login({
         provider: "weixin",
         success: (loginRes) => {
           const code = loginRes.code;
+          common_vendor.index.__f__("log", "at pages/mine/mine.vue:158", "[mine] uni.login success, codeLen=", code ? String(code).length : 0);
           if (!code) {
             common_vendor.index.showToast({ title: "登录失败(code)", icon: "none" });
             return;
           }
-          const getProfile = (cb) => {
-            if (common_vendor.index.getUserProfile) {
-              common_vendor.index.getUserProfile({
-                desc: "用于完善会员资料",
-                success: (res) => cb(null, res.userInfo || {}),
-                fail: () => cb(null, {})
-                // 用户拒绝也继续登录，只是不用微信头像昵称
-              });
-            } else {
-              common_vendor.index.getUserInfo({
-                success: (res) => cb(null, res.userInfo || {}),
-                fail: () => cb(null, {})
-              });
+          common_vendor.index.showLoading({ title: "登录中...", mask: true });
+          common_api_auth.wxPhoneLogin({
+            code,
+            phoneCode,
+            encryptedData,
+            iv,
+            nickName: nickname.value || "茶友",
+            avatarUrl: userAvatar.value || ""
+          }).then((data) => {
+            common_vendor.index.hideLoading();
+            if (!data.userId) {
+              common_vendor.index.showToast({ title: "登录失败", icon: "none" });
+              return;
             }
-          };
-          getProfile((err, userInfo) => {
-            const nickName = userInfo && userInfo.nickName || nickname.value;
-            const avatarUrl = userInfo && userInfo.avatarUrl || userAvatar.value;
-            common_vendor.index.showLoading({ title: "登录中...", mask: true });
-            common_api_auth.wxLogin({
-              code,
-              nickName,
-              avatarUrl
-            }).then((data) => {
-              common_vendor.index.hideLoading();
-              if (!data.userId) {
-                common_vendor.index.showToast({ title: "登录失败", icon: "none" });
-                return;
-              }
-              memberStore.setUserInfo({
-                ...data,
-                nickname: data.nickname || nickName || "茶友",
-                avatar: data.avatar || avatarUrl
-              });
-              common_vendor.index.showToast({ title: "登录成功", icon: "success" });
-            }).catch(() => {
-              common_vendor.index.hideLoading();
-              common_vendor.index.showToast({ title: "网络异常", icon: "none" });
-            });
+            memberStore.setUserInfo(data);
+            common_vendor.index.showToast({ title: "登录成功", icon: "success" });
+          }).catch((err) => {
+            common_vendor.index.hideLoading();
+            common_vendor.index.showToast({ title: (err == null ? void 0 : err.message) || "网络异常", icon: "none" });
           });
         },
         fail: () => {
@@ -100,23 +112,30 @@ const _sfc_main = {
         a: userAvatar.value,
         b: common_vendor.t(isLoggedIn.value ? nickname.value : "点击下方按钮登录"),
         c: isLoggedIn.value
-      }, isLoggedIn.value ? {} : {}, {
-        d: common_vendor.unref(safeAreaInsets).top + "px",
-        e: common_vendor.o(($event) => handleMenuClick("order")),
-        f: common_vendor.o(($event) => handleMenuClick("address")),
-        g: common_vendor.o(($event) => handleMenuClick("service")),
-        h: common_vendor.o(($event) => handleMenuClick("about")),
-        i: !isLoggedIn.value
+      }, isLoggedIn.value ? {
+        d: common_vendor.t(isAdmin.value ? "管理员" : "会员")
+      } : {}, {
+        e: common_vendor.unref(safeAreaInsets).top + "px",
+        f: common_vendor.t(points.value),
+        g: common_vendor.o(($event) => handleMenuClick("order")),
+        h: common_vendor.o(($event) => handleMenuClick("address")),
+        i: common_vendor.o(($event) => handleMenuClick("service")),
+        j: common_vendor.o(($event) => handleMenuClick("about")),
+        k: isAdmin.value
+      }, isAdmin.value ? {
+        l: common_vendor.o(($event) => handleMenuClick("admin"))
+      } : {}, {
+        m: !isLoggedIn.value
       }, !isLoggedIn.value ? {
-        j: common_vendor.o(onLogin)
+        n: common_vendor.o(onGetPhoneNumber)
       } : {
-        k: common_vendor.o(onLogout)
+        o: common_vendor.o(onLogout)
       }, {
-        l: common_vendor.p({
+        p: common_vendor.p({
           ["current-path"]: "/pages/mine/mine"
         }),
-        m: common_vendor.o(($event) => showOrderDrawer.value = $event),
-        n: common_vendor.p({
+        q: common_vendor.o(($event) => showOrderDrawer.value = $event),
+        r: common_vendor.p({
           show: showOrderDrawer.value
         })
       });

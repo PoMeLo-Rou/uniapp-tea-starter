@@ -1,12 +1,13 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 if (!Math) {
-  (bannerBox + memberCard + mainAction + CustomTabBar)();
+  (bannerBox + memberCard + mainAction + AiChat + CustomTabBar)();
 }
 const bannerBox = () => "./components/bannerBox.js";
 const memberCard = () => "./components/memberCard.js";
 const mainAction = () => "./components/mainAction.js";
 const CustomTabBar = () => "../../components/custom-tab-bar.js";
+const AiChat = () => "../../components/AiChat.js";
 const _sfc_main = {
   __name: "index",
   setup(__props) {

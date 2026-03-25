@@ -21,7 +21,15 @@ const _sfc_main = {
     const categories = common_vendor.ref([]);
     const products = common_vendor.ref([]);
     const orderType = common_vendor.ref("pickup");
-    const getProductsByCategory = (catId) => products.value.filter((p) => p.category_id === catId);
+    const isProductOnSale = (product) => {
+      if ((product == null ? void 0 : product.status) === void 0 || (product == null ? void 0 : product.status) === null)
+        return true;
+      if (typeof product.status === "number")
+        return product.status === 1;
+      const status = String(product.status).toLowerCase();
+      return status === "1" || status === "on" || status === "onsale" || status === "on_sale" || status === "active";
+    };
+    const getProductsByCategory = (catId) => products.value.filter((p) => p.category_id === catId && isProductOnSale(p));
     const getProductById = (pid) => products.value.find((p) => p.id == pid);
     const buildCartKey = (id, specs = {}) => {
       return `${id}__${specs.sweet || ""}__${specs.ice || ""}`;

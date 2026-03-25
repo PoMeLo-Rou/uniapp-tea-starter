@@ -193,7 +193,15 @@
 	const orderType = ref('pickup');
 
 	// --- 计算属性 ---
-	const getProductsByCategory = (catId) => products.value.filter(p => p.category_id === catId);
+	const isProductOnSale = (product) => {
+		if (product?.status === undefined || product?.status === null) return true;
+		if (typeof product.status === 'number') return product.status === 1;
+		const status = String(product.status).toLowerCase();
+		return status === '1' || status === 'on' || status === 'onsale' || status === 'on_sale' || status === 'active';
+	};
+
+	const getProductsByCategory = (catId) =>
+		products.value.filter((p) => p.category_id === catId && isProductOnSale(p));
 	const getProductById = (pid) => products.value.find(p => p.id == pid);
 
 	const buildCartKey = (id, specs = {}) => {
@@ -305,6 +313,7 @@
 					activeCategory.value = item.id;
 				}
 				break;
+
 			}
 		}
 	};
