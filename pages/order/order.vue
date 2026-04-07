@@ -35,7 +35,7 @@
         <text class="notice-text">会员日全场双倍积分，新品“酷黑莓桑”上线！</text>
       </view>
     </view -->
-		<orderHeader :orderType="orderType" @update:orderType="orderType = $event" />
+		<orderHeader :orderType="orderType" :storeInfo="storeInfo" @update:orderType="orderType = $event" />
 		<!-- 2. 中间点单区域 -->
 		<view class="main-content">
 
@@ -56,9 +56,8 @@
 				scroll-with-animation>
 				<!-- 广告 Banner -->
 				<view class="banner-wrapper">
-					<!-- src留空，后续请填入您的图片链接 -->
-					<image class="banner-img" src="" mode="aspectFill"></image>
-					<text class="banner-text">当季 · 多肉葡萄</text>
+					<image class="banner-img" :src="orderPageBannerImage" mode="aspectFill"></image>
+					<text class="banner-text">{{ orderPageBannerText }}</text>
 				</view>
 
 				<!-- 商品分类区块 -->
@@ -179,6 +178,7 @@
 	import ProductDetailPopup from './components/ProductDetailPopup.vue';
 	import CustomTabBar from '@/components/custom-tab-bar.vue';
 	import { fetchCategories as apiFetchCategories, fetchProducts as apiFetchProducts } from '@/common/api/product.js';
+	import { fetchSiteConfig, fetchStoreDistance } from '@/common/api/site.js';
 
 	// --- 数据定义 ---
 	const activeCategory = ref(1);
@@ -191,6 +191,16 @@
 	const categories = ref([]);
 	const products = ref([]);
 	const orderType = ref('pickup');
+	const storeInfo = ref({
+		storeName: '贵港平南中心购物广场店',
+		storeAddress: '',
+		pickupDistanceText: '距离您 3km · 步行约 15 分钟',
+		deliveryAddressText: '请选择收货地址 >',
+		deliveryStoreLine: '⇄ 贵港平南中心购物广场店 ｜ 送出外卖',
+		storeSlogan: 'new style tea, by inspiration >',
+	});
+	const orderPageBannerImage = ref('https://dummyimage.com/750x280/f3f4f6/9ca3af&text=Order+Banner');
+	const orderPageBannerText = ref('当季 · 多肉葡萄');
 
 	// --- 计算属性 ---
 	const isProductOnSale = (product) => {
@@ -362,6 +372,43 @@
 		});
 	};
 
+	const fetchSiteDisplayConfig = () => {
+		return fetchSiteConfig().then((cfg) => {
+			if (!cfg) return;
+			storeInfo.value = {
+				storeName: cfg.storeName || storeInfo.value.storeName,
+				storeAddress: cfg.storeAddress || storeInfo.value.storeAddress,
+				pickupDistanceText: cfg.pickupDistanceText || storeInfo.value.pickupDistanceText,
+				deliveryAddressText: cfg.deliveryAddressText || cfg.storeAddress || storeInfo.value.deliveryAddressText,
+				deliveryStoreLine: cfg.deliveryStoreLine || storeInfo.value.deliveryStoreLine,
+				storeSlogan: cfg.storeSlogan || storeInfo.value.storeSlogan,
+			};
+			orderPageBannerImage.value = cfg.orderPageBanner || orderPageBannerImage.value;
+			orderPageBannerText.value = cfg.orderPageBannerText || orderPageBannerText.value;
+		});
+	};
+
+	const updateStoreDistanceByLocation = async () => {
+		try {
+			const location = await new Promise((resolve, reject) => {
+				uni.getLocation({
+					type: 'gcj02',
+					success: resolve,
+					fail: reject,
+				});
+			});
+			const userLat = Number(location.latitude);
+			const userLng = Number(location.longitude);
+			if (!Number.isFinite(userLat) || !Number.isFinite(userLng)) return;
+			const distance = await fetchStoreDistance({ userLat, userLng });
+			if (distance?.distanceText) {
+				storeInfo.value.pickupDistanceText = distance.distanceText;
+			}
+		} catch (_) {
+			// 用户拒绝定位或定位失败时，保留后台配置文案
+		}
+	};
+
 	const calcCategoryPositions = () => {
 		const instance = getCurrentInstance();
 		if (!instance) return;
@@ -391,6 +438,8 @@
 	onMounted(async () => {
 		await fetchCategories();
 		await fetchProducts();
+		await fetchSiteDisplayConfig();
+		await updateStoreDistanceByLocation();
 		calcCategoryPositions();
 		uni.$on('openSpec', onOpenSpecFromHome);
 	});

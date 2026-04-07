@@ -52,9 +52,7 @@ export const updateProduct = (productId, payload) => {
 		header: { 'Content-Type': 'application/json' },
 		data: specGroups,
 	});
-};
-
-export const uploadProductImage = (filePath) => {
+};export const uploadProductImage = (filePath) => {
 	return new Promise((resolve, reject) => {
 		uni.uploadFile({
 			url: '/api/upload/product-image',

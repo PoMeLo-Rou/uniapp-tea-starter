@@ -2,6 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
 const common_api_product = require("../../common/api/product.js");
+const common_api_site = require("../../common/api/site.js");
 if (!Math) {
   (orderHeader + CustomTabBar + cartPopup + ProductDetailPopup)();
 }
@@ -21,6 +22,16 @@ const _sfc_main = {
     const categories = common_vendor.ref([]);
     const products = common_vendor.ref([]);
     const orderType = common_vendor.ref("pickup");
+    const storeInfo = common_vendor.ref({
+      storeName: "贵港平南中心购物广场店",
+      storeAddress: "",
+      pickupDistanceText: "距离您 3km · 步行约 15 分钟",
+      deliveryAddressText: "请选择收货地址 >",
+      deliveryStoreLine: "⇄ 贵港平南中心购物广场店 ｜ 送出外卖",
+      storeSlogan: "new style tea, by inspiration >"
+    });
+    const orderPageBannerImage = common_vendor.ref("https://dummyimage.com/750x280/f3f4f6/9ca3af&text=Order+Banner");
+    const orderPageBannerText = common_vendor.ref("当季 · 多肉葡萄");
     const isProductOnSale = (product) => {
       if ((product == null ? void 0 : product.status) === void 0 || (product == null ? void 0 : product.status) === null)
         return true;
@@ -163,6 +174,42 @@ const _sfc_main = {
         products.value = list || [];
       });
     };
+    const fetchSiteDisplayConfig = () => {
+      return common_api_site.fetchSiteConfig().then((cfg) => {
+        if (!cfg)
+          return;
+        storeInfo.value = {
+          storeName: cfg.storeName || storeInfo.value.storeName,
+          storeAddress: cfg.storeAddress || storeInfo.value.storeAddress,
+          pickupDistanceText: cfg.pickupDistanceText || storeInfo.value.pickupDistanceText,
+          deliveryAddressText: cfg.deliveryAddressText || cfg.storeAddress || storeInfo.value.deliveryAddressText,
+          deliveryStoreLine: cfg.deliveryStoreLine || storeInfo.value.deliveryStoreLine,
+          storeSlogan: cfg.storeSlogan || storeInfo.value.storeSlogan
+        };
+        orderPageBannerImage.value = cfg.orderPageBanner || orderPageBannerImage.value;
+        orderPageBannerText.value = cfg.orderPageBannerText || orderPageBannerText.value;
+      });
+    };
+    const updateStoreDistanceByLocation = async () => {
+      try {
+        const location = await new Promise((resolve, reject) => {
+          common_vendor.index.getLocation({
+            type: "gcj02",
+            success: resolve,
+            fail: reject
+          });
+        });
+        const userLat = Number(location.latitude);
+        const userLng = Number(location.longitude);
+        if (!Number.isFinite(userLat) || !Number.isFinite(userLng))
+          return;
+        const distance = await common_api_site.fetchStoreDistance({ userLat, userLng });
+        if (distance == null ? void 0 : distance.distanceText) {
+          storeInfo.value.pickupDistanceText = distance.distanceText;
+        }
+      } catch (_) {
+      }
+    };
     const calcCategoryPositions = () => {
       const instance = common_vendor.getCurrentInstance();
       if (!instance)
@@ -190,6 +237,8 @@ const _sfc_main = {
     common_vendor.onMounted(async () => {
       await fetchCategories();
       await fetchProducts();
+      await fetchSiteDisplayConfig();
+      await updateStoreDistanceByLocation();
       calcCategoryPositions();
       common_vendor.index.$on("openSpec", onOpenSpecFromHome);
     });
@@ -239,7 +288,8 @@ const _sfc_main = {
       return common_vendor.e({
         a: common_vendor.o(($event) => orderType.value = $event),
         b: common_vendor.p({
-          orderType: orderType.value
+          orderType: orderType.value,
+          storeInfo: storeInfo.value
         }),
         c: common_vendor.f(categories.value, (cat, k0, i0) => {
           return common_vendor.e({
@@ -254,7 +304,9 @@ const _sfc_main = {
           });
         }),
         d: "nav-" + activeCategory.value,
-        e: common_vendor.f(categories.value, (cat, k0, i0) => {
+        e: orderPageBannerImage.value,
+        f: common_vendor.t(orderPageBannerText.value),
+        g: common_vendor.f(categories.value, (cat, k0, i0) => {
           return {
             a: common_vendor.t(cat.name),
             b: common_vendor.f(getProductsByCategory(cat.id), (product, k1, i1) => {
@@ -279,31 +331,31 @@ const _sfc_main = {
             d: "category-" + cat.id
           };
         }),
-        f: rightScrollIntoView.value,
-        g: common_vendor.o(handleScroll),
-        h: totalCount.value > 0
+        h: rightScrollIntoView.value,
+        i: common_vendor.o(handleScroll),
+        j: totalCount.value > 0
       }, totalCount.value > 0 ? {
-        i: common_assets._imports_0,
-        j: common_vendor.t(totalCount.value),
-        k: common_vendor.o(toggleCartDetail),
-        l: common_vendor.t(totalPrice.value),
-        m: common_vendor.o(checkout)
+        k: common_assets._imports_0,
+        l: common_vendor.t(totalCount.value),
+        m: common_vendor.o(toggleCartDetail),
+        n: common_vendor.t(totalPrice.value),
+        o: common_vendor.o(checkout)
       } : {}, {
-        n: common_vendor.p({
+        p: common_vendor.p({
           ["current-path"]: "/pages/order/order"
         }),
-        o: common_vendor.o(setShowCartDetail),
-        p: common_vendor.o(updateCart),
-        q: common_vendor.o(clearCart),
-        r: common_vendor.p({
+        q: common_vendor.o(setShowCartDetail),
+        r: common_vendor.o(updateCart),
+        s: common_vendor.o(clearCart),
+        t: common_vendor.p({
           show: showCartDetail.value,
           items: cart.value,
           getProduct: getProductById
         }),
-        s: common_vendor.sr(detailPopup, "93207a4f-3", {
+        v: common_vendor.sr(detailPopup, "93207a4f-3", {
           "k": "detailPopup"
         }),
-        t: common_vendor.o(onAddToCart)
+        w: common_vendor.o(onAddToCart)
       });
     };
   }

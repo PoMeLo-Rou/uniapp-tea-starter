@@ -110,6 +110,7 @@ import { ref, computed, onMounted } from 'vue';
 import { createOrder, payOrder } from '@/common/api/order.js';
 import { useMemberStore } from '@/stores/modules/member.js';
 const { safeAreaInsets } = uni.getSystemInfoSync();
+const memberStore = useMemberStore();
 
 const orderItems = ref([]);
 const orderType = ref('pickup');
@@ -189,7 +190,7 @@ const doPay = async () => {
 
 	try {
 		// 第一步：创建订单
-		const { userId: storedUserId = 1 } = useMemberStore();
+		const storedUserId = Number(memberStore.userId || 0) || 1;
 		const orderRes = await createOrder({
 			userId: storedUserId,
 			items: orderItems.value,
@@ -206,6 +207,12 @@ const doPay = async () => {
 
 		console.log('[checkout] 支付成功, orderId:', orderId);
 		uni.hideLoading();
+
+		// 前端本地即时刷新积分显示（后端也会入库累计）
+		const deltaPoints = Math.max(0, Math.round(Number(totalPrice.value) || 0));
+		if (deltaPoints > 0) {
+			memberStore.points = Number(memberStore.points || 0) + deltaPoints;
+		}
 
 		// 第三步：支付成功后处理
 		uni.removeStorageSync('checkoutOrder');

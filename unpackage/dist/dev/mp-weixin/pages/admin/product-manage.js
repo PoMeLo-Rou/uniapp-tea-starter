@@ -6,6 +6,7 @@ const defaultImage = "https://dummyimage.com/200x200/f3f4f6/9ca3af&text=Tea";
 const _sfc_main = {
   __name: "product-manage",
   setup(__props) {
+    const { safeAreaInsets } = common_vendor.index.getSystemInfoSync();
     const memberStore = stores_modules_member.useMemberStore();
     const loading = common_vendor.ref(false);
     const saving = common_vendor.ref(false);
@@ -160,6 +161,9 @@ const _sfc_main = {
     const removeSpecGroup = (idx) => {
       specDraft.value.splice(idx, 1);
     };
+    const goBack = () => {
+      common_vendor.index.switchTab({ url: "/pages/mine/mine" });
+    };
     const saveProduct = async () => {
       if (!form.id)
         return;
@@ -209,11 +213,12 @@ const _sfc_main = {
     });
     return (_ctx, _cache) => {
       return common_vendor.e({
-        a: keyword.value,
-        b: common_vendor.o(($event) => keyword.value = $event.detail.value),
-        c: selectedCategoryId.value === 0 ? 1 : "",
-        d: common_vendor.o(($event) => selectedCategoryId.value = 0),
-        e: common_vendor.f(categories.value, (cat, k0, i0) => {
+        a: common_vendor.o(goBack),
+        b: keyword.value,
+        c: common_vendor.o(($event) => keyword.value = $event.detail.value),
+        d: selectedCategoryId.value === 0 ? 1 : "",
+        e: common_vendor.o(($event) => selectedCategoryId.value = 0),
+        f: common_vendor.f(categories.value, (cat, k0, i0) => {
           return {
             a: common_vendor.t(cat.name),
             b: cat.id,
@@ -221,7 +226,7 @@ const _sfc_main = {
             d: common_vendor.o(($event) => selectedCategoryId.value = cat.id, cat.id)
           };
         }),
-        f: common_vendor.f(filteredProducts.value, (item, k0, i0) => {
+        g: common_vendor.f(filteredProducts.value, (item, k0, i0) => {
           return {
             a: item.image || defaultImage,
             b: common_vendor.t(item.name),
@@ -235,23 +240,25 @@ const _sfc_main = {
             j: item.id
           };
         }),
-        g: !filteredProducts.value.length
+        h: !filteredProducts.value.length
       }, !filteredProducts.value.length ? {} : {}, {
-        h: showEditor.value
+        i: showEditor.value
       }, showEditor.value ? {
-        i: common_vendor.o(closeEditor),
-        j: form.name,
-        k: common_vendor.o(($event) => form.name = $event.detail.value),
-        l: form.desc,
-        m: common_vendor.o(($event) => form.desc = $event.detail.value),
-        n: form.price,
-        o: common_vendor.o(($event) => form.price = $event.detail.value),
-        p: form.image || defaultImage,
-        q: common_vendor.t(uploading.value ? "上传中" : "选择并上传"),
-        r: uploading.value,
-        s: common_vendor.o(chooseAndUploadImage),
-        t: common_vendor.o(addSpecGroup),
-        v: common_vendor.f(specDraft.value, (group, idx, i0) => {
+        j: saving.value,
+        k: common_vendor.o(saveProduct),
+        l: common_vendor.o(closeEditor),
+        m: form.name,
+        n: common_vendor.o(($event) => form.name = $event.detail.value),
+        o: form.desc,
+        p: common_vendor.o(($event) => form.desc = $event.detail.value),
+        q: form.price,
+        r: common_vendor.o(($event) => form.price = $event.detail.value),
+        s: form.image || defaultImage,
+        t: common_vendor.t(uploading.value ? "上传中" : "选择并上传"),
+        v: uploading.value,
+        w: common_vendor.o(chooseAndUploadImage),
+        x: common_vendor.o(addSpecGroup),
+        y: common_vendor.f(specDraft.value, (group, idx, i0) => {
           return {
             a: group.groupName,
             b: common_vendor.o(($event) => group.groupName = $event.detail.value, idx),
@@ -263,13 +270,15 @@ const _sfc_main = {
             h: idx
           };
         }),
-        w: common_vendor.o(closeEditor),
-        x: saving.value,
-        y: common_vendor.o(saveProduct),
-        z: common_vendor.o(() => {
+        z: common_vendor.o(closeEditor),
+        A: saving.value,
+        B: common_vendor.o(saveProduct),
+        C: common_vendor.o(() => {
         }),
-        A: common_vendor.o(closeEditor)
-      } : {});
+        D: common_vendor.o(closeEditor)
+      } : {}, {
+        E: common_vendor.unref(safeAreaInsets).top + "px"
+      });
     };
   }
 };

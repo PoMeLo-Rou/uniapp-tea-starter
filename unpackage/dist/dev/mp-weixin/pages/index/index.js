@@ -1,5 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const common_api_product = require("../../common/api/product.js");
+const common_api_site = require("../../common/api/site.js");
 if (!Math) {
   (bannerBox + memberCard + mainAction + AiChat + CustomTabBar)();
 }
@@ -20,6 +22,26 @@ const _sfc_main = {
       { id: 102, name: "芝芝茗茶", price: 19, image: "/static/logo.png" },
       { id: 201, name: "烤黑糖波波", price: 22, image: "/static/logo.png" }
     ]);
+    const loadHomeData = async () => {
+      try {
+        const [siteConfig, recommendProducts] = await Promise.all([
+          common_api_site.fetchSiteConfig(),
+          common_api_product.fetchRecommendProducts()
+        ]);
+        if (Array.isArray(siteConfig == null ? void 0 : siteConfig.homeBanners) && siteConfig.homeBanners.length) {
+          bannerData.value = siteConfig.homeBanners;
+        }
+        if (Array.isArray(recommendProducts) && recommendProducts.length) {
+          recommendList.value = recommendProducts.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            image: item.image || "/static/logo.png"
+          }));
+        }
+      } catch (e) {
+      }
+    };
     const goToOrder = () => {
       common_vendor.index.switchTab({
         url: "/pages/order/order"
@@ -35,6 +57,9 @@ const _sfc_main = {
         }
       });
     };
+    common_vendor.onMounted(() => {
+      loadHomeData();
+    });
     return (_ctx, _cache) => {
       return {
         a: common_vendor.p({

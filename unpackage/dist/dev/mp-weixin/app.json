@@ -5,7 +5,8 @@
     "pages/mine/mine",
     "pages/checkout/checkout",
     "pages/order/detail",
-    "pages/admin/product-manage"
+    "pages/admin/product-manage",
+    "pages/admin/site-manage"
   ],
   "tabBar": {
     "custom": true,

@@ -7,6 +7,7 @@ const _sfc_main = {
   __name: "checkout",
   setup(__props) {
     const { safeAreaInsets } = common_vendor.index.getSystemInfoSync();
+    const memberStore = stores_modules_member.useMemberStore();
     const orderItems = common_vendor.ref([]);
     const orderType = common_vendor.ref("pickup");
     const paying = common_vendor.ref(false);
@@ -70,7 +71,7 @@ const _sfc_main = {
       paying.value = true;
       common_vendor.index.showLoading({ title: "正在创建订单...", mask: true });
       try {
-        const { userId: storedUserId = 1 } = stores_modules_member.useMemberStore();
+        const storedUserId = Number(memberStore.userId || 0) || 1;
         const orderRes = await common_api_order.createOrder({
           userId: storedUserId,
           items: orderItems.value,
@@ -78,11 +79,15 @@ const _sfc_main = {
           totalPrice: Number(totalPrice.value)
         });
         const { orderId, orderNo } = orderRes;
-        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:201", "[checkout] 订单已创建:", orderNo, "id:", orderId);
+        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:202", "[checkout] 订单已创建:", orderNo, "id:", orderId);
         common_vendor.index.showLoading({ title: "支付中...", mask: true });
         await common_api_order.payOrder(orderId);
-        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:207", "[checkout] 支付成功, orderId:", orderId);
+        common_vendor.index.__f__("log", "at pages/checkout/checkout.vue:208", "[checkout] 支付成功, orderId:", orderId);
         common_vendor.index.hideLoading();
+        const deltaPoints = Math.max(0, Math.round(Number(totalPrice.value) || 0));
+        if (deltaPoints > 0) {
+          memberStore.points = Number(memberStore.points || 0) + deltaPoints;
+        }
         common_vendor.index.removeStorageSync("checkoutOrder");
         common_vendor.index.setStorageSync("justPaid", true);
         common_vendor.index.setStorageSync("lastPaidOrder", {
@@ -99,7 +104,7 @@ const _sfc_main = {
         }, 1500);
       } catch (err) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/checkout/checkout.vue:229", "[checkout] 支付流程出错:", err);
+        common_vendor.index.__f__("error", "at pages/checkout/checkout.vue:236", "[checkout] 支付流程出错:", err);
         common_vendor.index.showModal({
           title: "支付失败",
           content: err.message || "网络异常，请稍后重试",

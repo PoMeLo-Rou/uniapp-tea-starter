@@ -10,12 +10,13 @@
  */
 
 // 【小程序必改】微信开发者工具里 localhost 连不通，请改成你电脑的本机 IP（在 cmd 输入 ipconfig 查看 IPv4）
-const MINI_DEV_BASE = 'http://192.168.1.17:8080'; // 例：192.168.10.229，端口与后端一致
+const MINI_DEV_BASE = 'http://192.168.1.5:8080'; // 例：192.168.10.229，端口与后端一致
 
 function getApiBaseUrl() {
 	if (typeof process !== 'undefined' && process.env) {
 		if (process.env.VUE_APP_API_BASE) return process.env.VUE_APP_API_BASE;
-		if (process.env.NODE_ENV === 'development') return 'http://localhost:8080';
+		// 小程序开发环境不能使用 localhost，否则会请求超时
+		if (process.env.NODE_ENV === 'development') return MINI_DEV_BASE;
 		return 'https://your-prod-domain.com';
 	}
 	return MINI_DEV_BASE;

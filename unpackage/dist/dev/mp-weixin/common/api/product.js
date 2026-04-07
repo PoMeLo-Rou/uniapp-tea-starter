@@ -20,6 +20,12 @@ const fetchProductSpecs = (productId) => {
     method: "GET"
   });
 };
+const fetchRecommendProducts = () => {
+  return common_api_request.httpRequest({
+    url: "/api/products/recommend",
+    method: "GET"
+  });
+};
 const updateProduct = (productId, payload) => {
   return common_api_request.httpRequest({
     url: `/api/products/${productId}`,
@@ -75,6 +81,7 @@ const uploadProductImage = (filePath) => {
 exports.fetchCategories = fetchCategories;
 exports.fetchProductSpecs = fetchProductSpecs;
 exports.fetchProducts = fetchProducts;
+exports.fetchRecommendProducts = fetchRecommendProducts;
 exports.updateProduct = updateProduct;
 exports.updateProductSpecs = updateProductSpecs;
 exports.updateProductStatus = updateProductStatus;

@@ -65,6 +65,17 @@
   
   const quickTags = ['想喝清爽的', '今天好热', '推荐甜一点的', '有什么新品吗', '适合拍照的饮品'];
   const chatHistory = [];
+
+const normalizeAiText = (raw) => {
+  let text = String(raw || '');
+  text = text.replace(/\*\*(.*?)\*\*/g, '$1');
+  text = text.replace(/__(.*?)__/g, '$1');
+  text = text.replace(/`([^`]*)`/g, '$1');
+  text = text.replace(/^#{1,6}\s*/gm, '');
+  text = text.replace(/^\s*[-*]\s+/gm, '');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  return text.trim();
+};
   
   const scrollToBottom = () => {
     nextTick(() => {
@@ -143,6 +154,7 @@ const sendMessage = async (text) => {
     const last = messages.value[messages.value.length - 1];
     if (last && last.role === 'ai') {
       last.loading = false;
+      last.content = normalizeAiText(last.content);
       chatHistory.push({ role: 'assistant', content: last.content });
     }
     isStreaming.value = false;

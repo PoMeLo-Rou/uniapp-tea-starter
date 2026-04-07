@@ -31,12 +31,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import bannerBox from './components/bannerBox.vue';
 import memberCard from './components/memberCard.vue';
 import mainAction from './components/mainAction.vue';
 import CustomTabBar from '@/components/custom-tab-bar.vue';
 import AiChat from '@/components/AiChat.vue';
+import { fetchRecommendProducts } from '@/common/api/product.js';
+import { fetchSiteConfig } from '@/common/api/site.js';
 
 // 轮播图数据（空则使用 bannerBox 内部默认图）
 const bannerData = ref([
@@ -50,6 +52,28 @@ const recommendList = ref([
 	{ id: 102, name: '芝芝茗茶', price: 19, image: '/static/logo.png' },
 	{ id: 201, name: '烤黑糖波波', price: 22, image: '/static/logo.png' },
 ]);
+
+const loadHomeData = async () => {
+	try {
+		const [siteConfig, recommendProducts] = await Promise.all([
+			fetchSiteConfig(),
+			fetchRecommendProducts(),
+		]);
+		if (Array.isArray(siteConfig?.homeBanners) && siteConfig.homeBanners.length) {
+			bannerData.value = siteConfig.homeBanners;
+		}
+		if (Array.isArray(recommendProducts) && recommendProducts.length) {
+			recommendList.value = recommendProducts.map((item) => ({
+				id: item.id,
+				name: item.name,
+				price: item.price,
+				image: item.image || '/static/logo.png',
+			}));
+		}
+	} catch (e) {
+		// 保底使用本地默认数据，不阻塞页面展示
+	}
+};
 
 // 跳转到点单页 (因为是 TabBar 页面，需使用 switchTab)
 const goToOrder = () => {
@@ -69,6 +93,10 @@ const onRecommendClick = (item) => {
 		},
 	});
 };
+
+onMounted(() => {
+	loadHomeData();
+});
 </script>
 
 <style lang="scss">

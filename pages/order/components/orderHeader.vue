@@ -22,34 +22,45 @@
 		<!-- 自提模式内容 -->
 		<view v-if="mode === 'pickup'" class="pickup-block">
 			<view class="pickup-title-row">
-				<text class="pickup-title">贵港平南中心购物广场店</text>
+				<text class="pickup-title">{{ mergedStoreInfo.storeName }}</text>
 				<text class="pickup-arrow">></text>
 			</view>
-			<text class="pickup-sub">距离您 3km · 步行约 15 分钟</text>
+			<text class="pickup-sub">{{ mergedStoreInfo.pickupDistanceText }}</text>
 		</view>
 
 		<!-- 外送模式内容 -->
 		<view v-else class="delivery-block">
 			<view class="delivery-row">
 				<text class="loc-icon">📍</text>
-				<text class="addr-main">请选择收货地址 ></text>
+				<text class="addr-main">{{ mergedStoreInfo.deliveryAddressText }}</text>
 			</view>
-			<text class="store-line">⇄ 贵港平南中心购物广场店 ｜ 送出外卖</text>
-			<text class="slogan">new style tea, by inspiration ></text>
+			<text class="store-line">{{ mergedStoreInfo.deliveryStoreLine }}</text>
+			<text class="slogan">{{ mergedStoreInfo.storeSlogan }}</text>
 		</view>
 	</view>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
 	orderType: { type: String, default: 'pickup' },
+	storeInfo: {
+		type: Object,
+		default: () => ({}),
+	},
 });
 const emit = defineEmits(['update:orderType']);
 
 const { safeAreaInsets } = uni.getSystemInfoSync();
 const mode = ref(props.orderType);
+const mergedStoreInfo = computed(() => ({
+	storeName: props.storeInfo?.storeName || '森柠鹤南中路店',
+	pickupDistanceText: props.storeInfo?.pickupDistanceText || '距离信息待地图API计算',
+	deliveryAddressText: props.storeInfo?.deliveryAddressText || '广东省广州市白云区鹤龙街道鹤南中路51号',
+	deliveryStoreLine: props.storeInfo?.deliveryStoreLine || '⇄ 森柠鹤南中路店 ｜ 送出外卖',
+	storeSlogan: props.storeInfo?.storeSlogan || 'new style tea, by inspiration >',
+}));
 
 watch(() => props.orderType, (val) => {
 	mode.value = val;

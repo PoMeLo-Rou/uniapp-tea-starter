@@ -11,6 +11,16 @@ const _sfc_main = {
     const scrollTop = common_vendor.ref(0);
     const quickTags = ["想喝清爽的", "今天好热", "推荐甜一点的", "有什么新品吗", "适合拍照的饮品"];
     const chatHistory = [];
+    const normalizeAiText = (raw) => {
+      let text = String(raw || "");
+      text = text.replace(/\*\*(.*?)\*\*/g, "$1");
+      text = text.replace(/__(.*?)__/g, "$1");
+      text = text.replace(/`([^`]*)`/g, "$1");
+      text = text.replace(/^#{1,6}\s*/gm, "");
+      text = text.replace(/^\s*[-*]\s+/gm, "");
+      text = text.replace(/\n{3,}/g, "\n\n");
+      return text.trim();
+    };
     const scrollToBottom = () => {
       common_vendor.nextTick$1(() => {
         scrollTop.value = scrollTop.value === 99999 ? 1e5 : 99999;
@@ -21,7 +31,7 @@ const _sfc_main = {
       if (!common_ws_socket.socketManager.isConnected) {
         const memberRaw = common_vendor.index.getStorageSync("member");
         const userId = memberRaw ? memberRaw.userId : 0;
-        common_vendor.index.__f__("log", "at components/AiChat.vue:80", "[AiChat] 打开聊天，连接 WS, userId:", userId);
+        common_vendor.index.__f__("log", "at components/AiChat.vue:91", "[AiChat] 打开聊天，连接 WS, userId:", userId);
         common_ws_socket.socketManager.connect(userId != null ? userId : 0);
       }
     };
@@ -45,17 +55,17 @@ const _sfc_main = {
         const memberRaw = common_vendor.index.getStorageSync("member");
         const userId = memberRaw != null && memberRaw.userId != null ? memberRaw.userId : 0;
         if (!common_ws_socket.socketManager.isConnected) {
-          common_vendor.index.__f__("log", "at components/AiChat.vue:109", "[AiChat] WS 未连接，正在连接... userId:", userId);
+          common_vendor.index.__f__("log", "at components/AiChat.vue:120", "[AiChat] WS 未连接，正在连接... userId:", userId);
           common_ws_socket.socketManager.connect(userId);
         }
         await common_ws_socket.socketManager.waitForReady();
-        common_vendor.index.__f__("log", "at components/AiChat.vue:114", "[AiChat] WS 已就绪，发送 ai_recommend");
+        common_vendor.index.__f__("log", "at components/AiChat.vue:125", "[AiChat] WS 已就绪，发送 ai_recommend");
         const sent = common_ws_socket.socketManager.send({ type: "ai_recommend", messages: chatHistory });
         if (!sent) {
           throw new Error("消息发送失败");
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at components/AiChat.vue:120", "[AiChat] 发送失败:", e.message);
+        common_vendor.index.__f__("error", "at components/AiChat.vue:131", "[AiChat] 发送失败:", e.message);
         const last = messages.value[messages.value.length - 1];
         if (last && last.role === "ai") {
           const msg = e.message || "";
@@ -69,7 +79,7 @@ const _sfc_main = {
       const last = messages.value[messages.value.length - 1];
       if (last && last.role === "ai" && last.loading) {
         last.content += msg.content;
-        common_vendor.index.__f__("log", "at components/AiChat.vue:137", "[AiChat] 收到 AI 片段:", msg.content, "当前累计内容:", last.content);
+        common_vendor.index.__f__("log", "at components/AiChat.vue:148", "[AiChat] 收到 AI 片段:", msg.content, "当前累计内容:", last.content);
         scrollToBottom();
       }
     };
@@ -77,6 +87,7 @@ const _sfc_main = {
       const last = messages.value[messages.value.length - 1];
       if (last && last.role === "ai") {
         last.loading = false;
+        last.content = normalizeAiText(last.content);
         chatHistory.push({ role: "assistant", content: last.content });
       }
       isStreaming.value = false;
@@ -85,7 +96,7 @@ const _sfc_main = {
       const last = messages.value[messages.value.length - 1];
       if (last && last.role === "ai") {
         last.content = "AI 服务暂不可用: " + msg.message;
-        common_vendor.index.__f__("error", "at components/AiChat.vue:155", "[AiChat] AI 错误:", msg.message);
+        common_vendor.index.__f__("error", "at components/AiChat.vue:167", "[AiChat] AI 错误:", msg.message);
         last.loading = false;
       }
       isStreaming.value = false;

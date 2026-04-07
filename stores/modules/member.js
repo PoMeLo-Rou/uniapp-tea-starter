@@ -14,6 +14,8 @@ export const useMemberStore = defineStore(
 		const avatar = ref('')
 		const phone = ref('')
 		const points = ref(0)
+		const coupons = ref(0)
+		const balance = ref(0)
 		const role = ref('')
 		const roles = ref([])
 		const permissions = ref([])
@@ -40,6 +42,8 @@ export const useMemberStore = defineStore(
 			avatar.value = data.avatar || ''
 			phone.value = data.phone || ''
 			points.value = Number(data.points || 0)
+			coupons.value = Number(data.coupons || 0)
+			balance.value = Number(data.balance || 0)
 			const isAdminFlag = data.isAdmin === true || Number(data.isAdmin) === 1
 			role.value = String(data.role || '').toLowerCase()
 			if (!role.value && isAdminFlag) role.value = 'admin'
@@ -58,6 +62,8 @@ export const useMemberStore = defineStore(
 			avatar.value = ''
 			phone.value = ''
 			points.value = 0
+			coupons.value = 0
+			balance.value = 0
 			role.value = ''
 			roles.value = []
 			permissions.value = []
@@ -70,6 +76,8 @@ export const useMemberStore = defineStore(
 			avatar,
 			phone,
 			points,
+			coupons,
+			balance,
 			role,
 			roles,
 			permissions,

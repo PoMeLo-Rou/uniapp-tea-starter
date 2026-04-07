@@ -4,7 +4,7 @@
 		<view class="user-info">
 		  <image class="avatar" :src="userAvatar" mode="aspectFill"></image>
 		  <view class="meta">
-			<text class="nickname">{{ isLoggedIn ? nickname : '点击下方按钮登录' }}</text>
+			<text class="nickname">{{ isLoggedIn ? displayNickname : '点击下方按钮登录' }}</text>
 			<text v-if="isLoggedIn" class="level-tag">{{ isAdmin ? '管理员' : '会员' }}</text>
 		  </view>
 		</view>
@@ -18,12 +18,12 @@
 		</view>
 		<view class="divider"></view>
 		<view class="asset-item">
-		  <text class="num">5</text>
+		  <text class="num">{{ coupons }}</text>
 		  <text class="label">优惠券</text>
 		</view>
 		<view class="divider"></view>
 		<view class="asset-item">
-		  <text class="num">0.00</text>
+		  <text class="num">{{ balance.toFixed(2) }}</text>
 		  <text class="label">余额</text>
 		</view>
 	  </view>
@@ -68,6 +68,13 @@
 		  </view>
 		  <text class="arrow">></text>
 		</view>
+		<view v-if="isAdmin" class="menu-item" @click="handleMenuClick('siteAdmin')">
+		  <view class="left">
+			<text class="icon">🖼️</text>
+			<text class="text">首页/点单页展示管理</text>
+		  </view>
+		  <text class="arrow">></text>
+		</view>
 	  </view>
 	  
 	  <button class="logout-btn" open-type="getPhoneNumber" @getphonenumber="onGetPhoneNumber" v-if="!isLoggedIn">微信手机号登录</button>
@@ -100,9 +107,40 @@
   const showOrderDrawer = ref(false);
   const isLoggedIn = computed(() => memberStore.isLoggedIn);
   const isAdmin = computed(() => memberStore.isAdmin);
-  const nickname = computed(() => memberStore.nickname || '游客');
+  const nickname = computed(() => memberStore.nickname || '');
+  const displayNickname = computed(() => {
+    if (memberStore.nickname) return memberStore.nickname;
+    if (memberStore.userId || memberStore.phone || memberStore.openid) return '微信用户';
+    return '游客';
+  });
   const points = computed(() => memberStore.points || 0);
+  const coupons = computed(() => memberStore.coupons || 0);
+  const balance = computed(() => Number(memberStore.balance || 0));
   const userAvatar = computed(() => memberStore.avatar || 'https://img.icons8.com/color/96/user-male-circle--v1.png');
+  const rawAvatar = computed(() => memberStore.avatar || '');
+
+  const getWechatProfile = () => {
+    return new Promise((resolve) => {
+      if (typeof uni.getUserProfile !== 'function') {
+        resolve({ nickName: '', avatarUrl: '' });
+        return;
+      }
+      uni.getUserProfile({
+        desc: '用于完善会员资料',
+        lang: 'zh_CN',
+        success: (res) => {
+          const userInfo = res && res.userInfo ? res.userInfo : {};
+          resolve({
+            nickName: userInfo.nickName || '',
+            avatarUrl: userInfo.avatarUrl || '',
+          });
+        },
+        fail: () => {
+          resolve({ nickName: '', avatarUrl: '' });
+        },
+      });
+    });
+  };
 
   const handleMenuClick = (type) => {
 	if (type === 'order') {
@@ -125,6 +163,18 @@
 	  uni.navigateTo({ url: '/pages/admin/product-manage' });
 	  return;
 	}
+	if (type === 'siteAdmin') {
+	  if (!isLoggedIn.value) {
+		uni.showToast({ title: '请先登录', icon: 'none' });
+		return;
+	  }
+	  if (!isAdmin.value) {
+		uni.showToast({ title: '无管理员权限', icon: 'none' });
+		return;
+	  }
+	  uni.navigateTo({ url: '/pages/admin/site-manage' });
+	  return;
+	}
 	uni.showToast({
 	  title: `点击了 ${type} 功能`,
 	  icon: 'none'
@@ -132,7 +182,7 @@
   };
 
   // 微信手机号登录：手机号授权 + code 换 openid
-  const onGetPhoneNumber = (e) => {
+  const onGetPhoneNumber = async (e) => {
     console.log('[mine] onGetPhoneNumber callback triggered:', e);
     const detail = e && e.detail ? e.detail : {};
     const phoneCode = detail.code || '';
@@ -151,6 +201,8 @@
       return;
     }
 
+    const profile = await getWechatProfile();
+
     uni.login({
       provider: 'weixin',
       success: (loginRes) => {
@@ -167,15 +219,20 @@
           phoneCode,
           encryptedData,
           iv,
-          nickName: nickname.value || '茶友',
-          avatarUrl: userAvatar.value || '',
+          // 仅传真实资料，避免把“游客/默认头像”回写到数据库
+          nickName: profile.nickName || nickname.value,
+          avatarUrl: profile.avatarUrl || rawAvatar.value,
         }).then((data) => {
           uni.hideLoading();
           if (!data.userId) {
             uni.showToast({ title: '登录失败', icon: 'none' });
             return;
           }
-          memberStore.setUserInfo(data);
+          memberStore.setUserInfo({
+            ...data,
+            nickname: data.nickname || profile.nickName || '',
+            avatar: data.avatar || profile.avatarUrl || '',
+          });
           uni.showToast({ title: '登录成功', icon: 'success' });
         }).catch((err) => {
           uni.hideLoading();

@@ -10,6 +10,8 @@ const useMemberStore = common_vendor.defineStore(
     const avatar = common_vendor.ref("");
     const phone = common_vendor.ref("");
     const points = common_vendor.ref(0);
+    const coupons = common_vendor.ref(0);
+    const balance = common_vendor.ref(0);
     const role = common_vendor.ref("");
     const roles = common_vendor.ref([]);
     const permissions = common_vendor.ref([]);
@@ -35,6 +37,8 @@ const useMemberStore = common_vendor.defineStore(
       avatar.value = data.avatar || "";
       phone.value = data.phone || "";
       points.value = Number(data.points || 0);
+      coupons.value = Number(data.coupons || 0);
+      balance.value = Number(data.balance || 0);
       const isAdminFlag = data.isAdmin === true || Number(data.isAdmin) === 1;
       role.value = String(data.role || "").toLowerCase();
       if (!role.value && isAdminFlag)
@@ -49,6 +53,8 @@ const useMemberStore = common_vendor.defineStore(
       avatar.value = "";
       phone.value = "";
       points.value = 0;
+      coupons.value = 0;
+      balance.value = 0;
       role.value = "";
       roles.value = [];
       permissions.value = [];
@@ -60,6 +66,8 @@ const useMemberStore = common_vendor.defineStore(
       avatar,
       phone,
       points,
+      coupons,
+      balance,
       role,
       roles,
       permissions,

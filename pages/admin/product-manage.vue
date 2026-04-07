@@ -1,33 +1,29 @@
 <template>
-	<view class="page">
+	<view class="page" :style="{ paddingTop: safeAreaInsets.top + 'px' }">
 		<view class="header">
-			<text class="title">管理员商品管理</text>
+			<view class="header-top">
+				<button class="back-btn" @click="goBack">返回</button>
+				<text class="title">管理员商品管理</text>
+				<view class="header-placeholder"></view>
+			</view>
 			<text class="subtitle">支持上下架、描述/规格修改、商品图上传</text>
+			<view class="toolbar card">
+				<input v-model="keyword" class="search-input" placeholder="搜索商品名称" />
+				<scroll-view scroll-x class="category-scroll" show-scrollbar="false">
+					<view class="category-list">
+						<view class="category-item" :class="{ active: selectedCategoryId === 0 }"
+							@click="selectedCategoryId = 0">
+							全部
+						</view>
+						<view v-for="cat in categories" :key="cat.id" class="category-item"
+							:class="{ active: selectedCategoryId === cat.id }" @click="selectedCategoryId = cat.id">
+							{{ cat.name }}
+						</view>
+					</view>
+				</scroll-view>
+			</view>
 		</view>
 
-		<view class="toolbar card">
-			<input v-model="keyword" class="search-input" placeholder="搜索商品名称" />
-			<scroll-view scroll-x class="category-scroll" show-scrollbar="false">
-				<view class="category-list">
-					<view
-						class="category-item"
-						:class="{ active: selectedCategoryId === 0 }"
-						@click="selectedCategoryId = 0"
-					>
-						全部
-					</view>
-					<view
-						v-for="cat in categories"
-						:key="cat.id"
-						class="category-item"
-						:class="{ active: selectedCategoryId === cat.id }"
-						@click="selectedCategoryId = cat.id"
-					>
-						{{ cat.name }}
-					</view>
-				</view>
-			</scroll-view>
-		</view>
 
 		<scroll-view scroll-y class="product-list">
 			<view v-for="item in filteredProducts" :key="item.id" class="product-card card">
@@ -59,7 +55,10 @@
 			<view class="editor" @click.stop>
 				<view class="editor-head">
 					<text class="editor-title">编辑商品</text>
-					<text class="close" @click="closeEditor">关闭</text>
+					<view class="editor-head-actions">
+						<button class="mini-btn primary" :loading="saving" @click="saveProduct">保存</button>
+						<text class="close" @click="closeEditor">关闭</text>
+					</view>
 				</view>
 
 				<scroll-view scroll-y class="editor-body">
@@ -95,11 +94,7 @@
 								<input v-model="group.groupName" class="input" placeholder="分组名称，如 甜度" />
 								<input v-model="group.groupCode" class="input" placeholder="分组编码，如 sweet" />
 							</view>
-							<textarea
-								v-model="group.optionsText"
-								class="textarea"
-								placeholder="选项用逗号分隔，如 全糖,半糖,少糖"
-							/>
+							<textarea v-model="group.optionsText" class="textarea" placeholder="选项用逗号分隔，如 全糖,半糖,少糖" />
 							<view class="remove-wrap">
 								<button class="mini-btn danger" @click="removeSpecGroup(idx)">删除分组</button>
 							</view>
@@ -117,6 +112,8 @@
 </template>
 
 <script setup>
+const { safeAreaInsets } = uni.getSystemInfoSync();
+
 import { computed, reactive, ref } from 'vue';
 import { onLoad, onShow } from '@dcloudio/uni-app';
 import {
@@ -302,6 +299,10 @@ const removeSpecGroup = (idx) => {
 	specDraft.value.splice(idx, 1);
 };
 
+const goBack = () => {
+	uni.switchTab({ url: '/pages/mine/mine' });
+};
+
 const saveProduct = async () => {
 	if (!form.id) return;
 	if (!form.name.trim()) {
@@ -369,12 +370,24 @@ onShow(() => {
 
 .header {
 	padding: 10rpx 4rpx 20rpx;
+
+	.header-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.header-placeholder {
+		width: 110rpx;
+	}
+
 	.title {
 		display: block;
 		font-size: 34rpx;
 		font-weight: 700;
 		color: #1f2937;
 	}
+
 	.subtitle {
 		display: block;
 		margin-top: 8rpx;
@@ -383,8 +396,25 @@ onShow(() => {
 	}
 }
 
+.back-btn {
+	margin: 0;
+	width: 110rpx;
+	height: 58rpx;
+	line-height: 58rpx;
+	border-radius: 999rpx;
+	background: #e5e7eb;
+	color: #111827;
+	font-size: 24rpx;
+	padding: 0;
+
+	&::after {
+		border: none;
+	}
+}
+
 .toolbar {
 	padding: 20rpx;
+	margin-top: 20rpx;
 }
 
 .search-input {
@@ -411,6 +441,7 @@ onShow(() => {
 	color: #4b5563;
 	border-radius: 999rpx;
 	font-size: 24rpx;
+
 	&.active {
 		background: #023993;
 		color: #fff;
@@ -459,6 +490,7 @@ onShow(() => {
 	font-size: 20rpx;
 	background: #dcfce7;
 	color: #15803d;
+
 	&.off {
 		background: #fee2e2;
 		color: #b91c1c;
@@ -499,17 +531,21 @@ onShow(() => {
 	padding: 0 22rpx;
 	border-radius: 999rpx;
 	font-size: 24rpx;
+
 	&::after {
 		border: none;
 	}
+
 	&.primary {
 		background: #023993;
 		color: #fff;
 	}
+
 	&.ghost {
 		background: #eff6ff;
 		color: #1d4ed8;
 	}
+
 	&.danger {
 		background: #fff1f2;
 		color: #be123c;
@@ -547,11 +583,17 @@ onShow(() => {
 
 .editor-head {
 	height: 100rpx;
-	padding: 0 30rpx;
+	padding: 30rpx;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	border-bottom: 1rpx solid #f1f5f9;
+}
+
+.editor-head-actions {
+	display: flex;
+	align-items: center;
+	gap: 14rpx;
 }
 
 .editor-title {
@@ -657,13 +699,16 @@ onShow(() => {
 	line-height: 76rpx;
 	border-radius: 999rpx;
 	font-size: 28rpx;
+
 	&::after {
 		border: none;
 	}
+
 	&.primary {
 		background: #023993;
 		color: #fff;
 	}
+
 	&.ghost {
 		background: #e5e7eb;
 		color: #111827;
