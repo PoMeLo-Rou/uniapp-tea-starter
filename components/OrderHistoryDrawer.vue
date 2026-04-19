@@ -96,8 +96,8 @@ function close() {
 }
 
 function goDetail(order) {
-	close();
 	uni.navigateTo({ url: '/pages/order/detail?id=' + order.id });
+	close();
 }
 
 watch(() => props.show, (val) => {

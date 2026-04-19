@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../vendor.js");
-const MINI_DEV_BASE = "http://192.168.1.5:8080";
+const MINI_DEV_BASE = "http://172.20.10.3:8080";
 function getApiBaseUrl() {
   if (typeof process !== "undefined" && process.env) {
     if (process.env.VUE_APP_API_BASE)

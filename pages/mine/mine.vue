@@ -64,14 +64,7 @@
 		<view v-if="isAdmin" class="menu-item" @click="handleMenuClick('admin')">
 		  <view class="left">
 			<text class="icon">🛠️</text>
-			<text class="text">管理员商品管理</text>
-		  </view>
-		  <text class="arrow">></text>
-		</view>
-		<view v-if="isAdmin" class="menu-item" @click="handleMenuClick('siteAdmin')">
-		  <view class="left">
-			<text class="icon">🖼️</text>
-			<text class="text">首页/点单页展示管理</text>
+			<text class="text">管理中心</text>
 		  </view>
 		  <text class="arrow">></text>
 		</view>
@@ -160,19 +153,7 @@
 		uni.showToast({ title: '无管理员权限', icon: 'none' });
 		return;
 	  }
-	  uni.navigateTo({ url: '/pages/admin/product-manage' });
-	  return;
-	}
-	if (type === 'siteAdmin') {
-	  if (!isLoggedIn.value) {
-		uni.showToast({ title: '请先登录', icon: 'none' });
-		return;
-	  }
-	  if (!isAdmin.value) {
-		uni.showToast({ title: '无管理员权限', icon: 'none' });
-		return;
-	  }
-	  uni.navigateTo({ url: '/pages/admin/site-manage' });
+	  uni.navigateTo({ url: '/pages/admin/index' });
 	  return;
 	}
 	uni.showToast({

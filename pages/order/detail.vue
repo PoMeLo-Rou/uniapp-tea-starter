@@ -83,7 +83,11 @@
 			<view style="height: 40rpx;"></view>
 		</scroll-view>
 
-		<view v-else class="loading-state">
+		<view class="fixed-footer" v-if="order && order.status === 'ready'">
+			<button class="confirm-btn" :disabled="confirming" @click="confirmPickup">我已取货，确认完成</button>
+		</view>
+
+		<view v-if="!loading && !order" class="loading-state">
 			<text>订单不存在</text>
 		</view>
 	</view>
@@ -92,11 +96,12 @@
 <script setup>
 import { ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
-import { fetchOrderDetail } from '@/common/api/order.js';
+import { fetchOrderDetail, confirmOrderPickup } from '@/common/api/order.js';
 const { safeAreaInsets } = uni.getSystemInfoSync();
 
 const order = ref(null);
 const loading = ref(true);
+const confirming = ref(false);
 const orderId = ref(null);
 
 const statusMap = { pending: '待支付', paid: '已支付', making: '制作中', ready: '待取杯', finished: '已完成', cancelled: '已取消' };
@@ -132,11 +137,40 @@ const fetchDetail = async (id) => {
 				pay_amount: Number(d.pay_amount),
 				discount_amount: Number(d.discount_amount || 0),
 			};
+		} else {
+			uni.showToast({ title: '订单不存在', icon: 'none' });
+			setTimeout(() => {
+				uni.navigateBack();
+			}, 800);
 		}
 	} catch (e) {
-		uni.showToast({ title: '加载失败', icon: 'none' });
+		console.error('[fetchDetail] error:', e);
+		uni.showToast({ title: '加载失败，请稍后重试', icon: 'none' });
+		setTimeout(() => {
+			uni.navigateBack();
+		}, 800);
 	} finally {
 		loading.value = false;
+	}
+};
+
+const confirmPickup = async () => {
+	if (!order.value || order.value.status !== 'ready') return;
+	confirming.value = true;
+	try {
+		const res = await confirmOrderPickup(orderId.value);
+		if (res && (res.ok || res.status === 'finished')) {
+			order.value.status = 'finished';
+			order.value.finished_at = new Date().toISOString();
+			uni.showToast({ title: '已确认取货', icon: 'success' });
+		} else {
+			uni.showToast({ title: '确认失败，请重试', icon: 'none' });
+		}
+	} catch (err) {
+		console.error('[confirmPickup] error:', err);
+		uni.showToast({ title: err.message || '网络异常', icon: 'none' });
+	} finally {
+		confirming.value = false;
 	}
 };
 
@@ -197,6 +231,7 @@ const goBack = () => {
 
 .detail-body {
 	flex: 1;
+	padding-bottom: 160rpx;
 }
 
 .status-section {
@@ -310,4 +345,25 @@ const goBack = () => {
 	display: block;
 	margin-top: 4rpx;
 }
-</style>
+
+.action-panel {
+	padding: 24rpx 30rpx 0;
+}
+.confirm-btn {
+	width: 100%;
+	height: 84rpx;
+	border-radius: 42rpx;
+	background: $uni-color-primary;
+	color: #fff;
+	font-size: 30rpx;
+	font-weight: 600;
+	border: none;
+}	.fixed-footer {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		padding: 20rpx 24rpx 24rpx;
+		background: #fff;
+		box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
+	}

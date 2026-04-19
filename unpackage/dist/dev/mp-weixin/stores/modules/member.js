@@ -40,9 +40,13 @@ const useMemberStore = common_vendor.defineStore(
       coupons.value = Number(data.coupons || 0);
       balance.value = Number(data.balance || 0);
       const isAdminFlag = data.isAdmin === true || Number(data.isAdmin) === 1;
-      role.value = String(data.role || "").toLowerCase();
-      if (!role.value && isAdminFlag)
+      if (data.role) {
+        role.value = String(data.role).toLowerCase();
+      } else if (isAdminFlag) {
         role.value = "admin";
+      } else {
+        role.value = "user";
+      }
       roles.value = Array.isArray(data.roles) ? data.roles.map((item) => String(item).toLowerCase()) : [];
       permissions.value = Array.isArray(data.permissions) ? data.permissions.map((item) => String(item)) : [];
     }

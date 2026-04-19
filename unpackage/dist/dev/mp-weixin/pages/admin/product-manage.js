@@ -23,7 +23,8 @@ const _sfc_main = {
       price: "",
       image: "",
       category_id: null,
-      status: 1
+      status: 1,
+      is_recommend: 0
     });
     const specDraft = common_vendor.ref([]);
     const isOnSale = (product) => {
@@ -116,6 +117,7 @@ const _sfc_main = {
       form.image = item.image || "";
       form.category_id = item.category_id || null;
       form.status = isOnSale(item) ? 1 : 0;
+      form.is_recommend = item.is_recommend ? 1 : 0;
       specDraft.value = [];
       showEditor.value = true;
       try {
@@ -184,7 +186,8 @@ const _sfc_main = {
           price: priceNum,
           image: form.image,
           category_id: form.category_id,
-          status: form.status
+          status: form.status,
+          is_recommend: form.is_recommend ? 1 : 0
         });
         await common_api_product.updateProductSpecs(form.id, buildSpecsPayload());
         const target = products.value.find((p) => p.id === form.id);
@@ -194,6 +197,7 @@ const _sfc_main = {
           target.price = priceNum;
           target.image = form.image;
           target.status = form.status;
+          target.is_recommend = form.is_recommend ? 1 : 0;
         }
         common_vendor.index.showToast({ title: "保存成功", icon: "success" });
         closeEditor();

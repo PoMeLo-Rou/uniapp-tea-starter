@@ -10,6 +10,7 @@ if (!Math) {
   "./pages/mine/mine.js";
   "./pages/checkout/checkout.js";
   "./pages/order/detail.js";
+  "./pages/admin/index.js";
   "./pages/admin/product-manage.js";
   "./pages/admin/site-manage.js";
 }

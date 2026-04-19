@@ -5,6 +5,7 @@
     "pages/mine/mine",
     "pages/checkout/checkout",
     "pages/order/detail",
+    "pages/admin/index",
     "pages/admin/product-manage",
     "pages/admin/site-manage"
   ],

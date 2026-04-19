@@ -44,6 +44,13 @@
 		}
 	},
 	{
+		"path": "pages/admin/index",
+		"style": {
+			"navigationBarTitleText": "管理中心",
+			"navigationStyle": "custom"
+		}
+	},
+	{
 		"path": "pages/admin/product-manage",
 		"style": {
 			"navigationBarTitleText": "管理员商品管理",

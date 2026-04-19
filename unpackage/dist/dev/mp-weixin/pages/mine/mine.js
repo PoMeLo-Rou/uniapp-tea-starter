@@ -75,19 +75,7 @@ const _sfc_main = {
           common_vendor.index.showToast({ title: "无管理员权限", icon: "none" });
           return;
         }
-        common_vendor.index.navigateTo({ url: "/pages/admin/product-manage" });
-        return;
-      }
-      if (type === "siteAdmin") {
-        if (!isLoggedIn.value) {
-          common_vendor.index.showToast({ title: "请先登录", icon: "none" });
-          return;
-        }
-        if (!isAdmin.value) {
-          common_vendor.index.showToast({ title: "无管理员权限", icon: "none" });
-          return;
-        }
-        common_vendor.index.navigateTo({ url: "/pages/admin/site-manage" });
+        common_vendor.index.navigateTo({ url: "/pages/admin/index" });
         return;
       }
       common_vendor.index.showToast({
@@ -96,13 +84,13 @@ const _sfc_main = {
       });
     };
     const onGetPhoneNumber = async (e) => {
-      common_vendor.index.__f__("log", "at pages/mine/mine.vue:186", "[mine] onGetPhoneNumber callback triggered:", e);
+      common_vendor.index.__f__("log", "at pages/mine/mine.vue:167", "[mine] onGetPhoneNumber callback triggered:", e);
       const detail = e && e.detail ? e.detail : {};
       const phoneCode = detail.code || "";
       const encryptedData = detail.encryptedData || "";
       const iv = detail.iv || "";
       const ok = String(detail.errMsg || "").includes(":ok");
-      common_vendor.index.__f__("log", "at pages/mine/mine.vue:192", "[mine] phone auth detail:", {
+      common_vendor.index.__f__("log", "at pages/mine/mine.vue:173", "[mine] phone auth detail:", {
         errMsg: detail.errMsg,
         ok,
         phoneCodeLen: phoneCode ? String(phoneCode).length : 0,
@@ -118,7 +106,7 @@ const _sfc_main = {
         provider: "weixin",
         success: (loginRes) => {
           const code = loginRes.code;
-          common_vendor.index.__f__("log", "at pages/mine/mine.vue:210", "[mine] uni.login success, codeLen=", code ? String(code).length : 0);
+          common_vendor.index.__f__("log", "at pages/mine/mine.vue:191", "[mine] uni.login success, codeLen=", code ? String(code).length : 0);
           if (!code) {
             common_vendor.index.showToast({ title: "登录失败(code)", icon: "none" });
             return;
@@ -177,21 +165,17 @@ const _sfc_main = {
       }, isAdmin.value ? {
         n: common_vendor.o(($event) => handleMenuClick("admin"))
       } : {}, {
-        o: isAdmin.value
-      }, isAdmin.value ? {
-        p: common_vendor.o(($event) => handleMenuClick("siteAdmin"))
-      } : {}, {
-        q: !isLoggedIn.value
+        o: !isLoggedIn.value
       }, !isLoggedIn.value ? {
-        r: common_vendor.o(onGetPhoneNumber)
+        p: common_vendor.o(onGetPhoneNumber)
       } : {
-        s: common_vendor.o(onLogout)
+        q: common_vendor.o(onLogout)
       }, {
-        t: common_vendor.p({
+        r: common_vendor.p({
           ["current-path"]: "/pages/mine/mine"
         }),
-        v: common_vendor.o(($event) => showOrderDrawer.value = $event),
-        w: common_vendor.p({
+        s: common_vendor.o(($event) => showOrderDrawer.value = $event),
+        t: common_vendor.p({
           show: showOrderDrawer.value
         })
       });

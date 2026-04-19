@@ -10,7 +10,7 @@
  */
 
 // 【小程序必改】微信开发者工具里 localhost 连不通，请改成你电脑的本机 IP（在 cmd 输入 ipconfig 查看 IPv4）
-const MINI_DEV_BASE = 'http://192.168.1.5:8080'; // 例：192.168.10.229，端口与后端一致
+const MINI_DEV_BASE = 'http://172.20.10.1:8080'; // 例：192.168.10.229，端口与后端一致
 
 function getApiBaseUrl() {
 	if (typeof process !== 'undefined' && process.env) {
@@ -22,7 +22,29 @@ function getApiBaseUrl() {
 	return MINI_DEV_BASE;
 }
 
+const API_BASE_URL = getApiBaseUrl().replace(/\/+$/, '');
+
 export const getApiBase = getApiBaseUrl;
+
+export const normalizeImageUrl = (url) => {
+	if (!url) return url;
+	if (!url.startsWith('http')) {
+		return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+	}
+	try {
+		const parsed = new URL(url);
+		const base = new URL(API_BASE_URL);
+		if (parsed.pathname.startsWith('/uploads')) {
+			parsed.hostname = base.hostname;
+			parsed.port = base.port;
+			parsed.protocol = base.protocol;
+			return parsed.toString();
+		}
+		return url;
+	} catch (e) {
+		return url;
+	}
+};
 
 const httpInterceptor = {
 	invoke(options) {

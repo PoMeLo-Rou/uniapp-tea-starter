@@ -11,7 +11,7 @@
 				:key="item.id || index"
 				@click="onClick(item)"
 			>
-				<image :src="item.image" mode="aspectFill" class="prod-img"></image>
+				<image :src="normalizedSrc(item.image)" mode="aspectFill" class="prod-img"></image>
 				<view class="prod-info">
 					<text class="prod-name">{{ item.name }}</text>
 					<text class="prod-price">￥{{ item.price }}</text>
@@ -23,6 +23,8 @@
 </template>
 
 <script setup>
+import { normalizeImageUrl } from '@/common/api/request.js';
+
 defineProps({
 	list: {
 		type: Array,
@@ -35,6 +37,8 @@ const emit = defineEmits(['click']);
 const onClick = (item) => {
 	emit('click', item);
 };
+
+const normalizedSrc = (src) => normalizeImageUrl(src);
 </script>
 
 <style lang="scss" scoped>

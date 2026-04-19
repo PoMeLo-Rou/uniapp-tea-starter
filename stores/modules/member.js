@@ -44,12 +44,26 @@ export const useMemberStore = defineStore(
 			points.value = Number(data.points || 0)
 			coupons.value = Number(data.coupons || 0)
 			balance.value = Number(data.balance || 0)
+			
+			// 后端返回什么就用什么，确保完全覆盖旧值
 			const isAdminFlag = data.isAdmin === true || Number(data.isAdmin) === 1
-			role.value = String(data.role || '').toLowerCase()
-			if (!role.value && isAdminFlag) role.value = 'admin'
+			if (data.role) {
+				// 后端明确返回了 role，必须使用它
+				role.value = String(data.role).toLowerCase()
+			} else if (isAdminFlag) {
+				// 没有 role，但有 isAdmin 标志，则设为 admin
+				role.value = 'admin'
+			} else {
+				// 普通用户，明确清空 role
+				role.value = 'user'
+			}
+			
+			// 完全覆盖 roles 数组，不允许残留旧值
 			roles.value = Array.isArray(data.roles)
 				? data.roles.map((item) => String(item).toLowerCase())
 				: []
+			
+			// 完全覆盖 permissions 数组，不允许残留旧值
 			permissions.value = Array.isArray(data.permissions)
 				? data.permissions.map((item) => String(item))
 				: []

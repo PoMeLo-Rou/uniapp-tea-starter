@@ -21,6 +21,15 @@ export const payOrder = (orderId) => {
 	});
 };
 
+// 确认取货
+export const confirmOrderPickup = (orderId) => {
+	return httpRequest({
+		url: `/api/orders/${orderId}/confirm-pickup`,
+		method: 'POST',
+		header: { 'Content-Type': 'application/json' },
+	});
+};
+
 // 订单列表
 export const fetchOrderList = (params) => {
 	return httpRequest({

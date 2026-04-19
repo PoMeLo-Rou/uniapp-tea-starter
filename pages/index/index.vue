@@ -14,7 +14,7 @@
 			<scroll-view class="recommend-scroll" scroll-x="true" show-scrollbar="false">
 				<view class="recommend-item" v-for="(item, index) in recommendList" :key="item.id || index"
 					@click="onRecommendClick(item)">
-					<image :src="item.image" mode="aspectFill" class="prod-img"></image>
+					<image :src="normalizeImageUrl(item.image)" mode="aspectFill" class="prod-img"></image>
 					<view class="prod-info">
 						<text class="prod-name">{{ item.name }}</text>
 						<text class="prod-price">￥{{ item.price }}</text>
@@ -39,6 +39,7 @@ import CustomTabBar from '@/components/custom-tab-bar.vue';
 import AiChat from '@/components/AiChat.vue';
 import { fetchRecommendProducts } from '@/common/api/product.js';
 import { fetchSiteConfig } from '@/common/api/site.js';
+import { normalizeImageUrl } from '@/common/api/request.js';
 
 // 轮播图数据（空则使用 bannerBox 内部默认图）
 const bannerData = ref([

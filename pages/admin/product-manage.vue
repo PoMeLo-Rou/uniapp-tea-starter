@@ -74,15 +74,18 @@
 						<text class="label">价格</text>
 						<input v-model="form.price" class="input" type="digit" placeholder="请输入价格" />
 					</view>
-					<view class="form-item">
-						<text class="label">商品图</text>
-						<view class="upload-row">
-							<image :src="form.image || defaultImage" class="preview" mode="aspectFill" />
-							<button class="mini-btn primary" :loading="uploading" @click="chooseAndUploadImage">
-								{{ uploading ? '上传中' : '选择并上传' }}
-							</button>
-						</view>
-					</view>
+			<view class="form-item switch-item">
+				<text class="label">首页推荐</text>
+				<switch v-model="form.is_recommend" color="#023993" />
+			</view>
+			<view class="form-item">
+				<text class="label">商品图</text>
+				<view class="upload-row">
+					<image :src="form.image || defaultImage" class="preview" mode="aspectFill" />
+					<button class="mini-btn primary" :loading="uploading" @click="chooseAndUploadImage">
+						{{ uploading ? '上传中' : '选择并上传' }}
+					</button>
+				</view>
 
 					<view class="spec-section">
 						<view class="spec-head">
@@ -148,6 +151,7 @@ const form = reactive({
 	image: '',
 	category_id: null,
 	status: 1,
+	is_recommend: 0,
 });
 
 const specDraft = ref([]);
@@ -250,6 +254,7 @@ const openEditor = async (item) => {
 	form.image = item.image || '';
 	form.category_id = item.category_id || null;
 	form.status = isOnSale(item) ? 1 : 0;
+	form.is_recommend = item.is_recommend ? 1 : 0;
 	specDraft.value = [];
 	showEditor.value = true;
 	try {
@@ -323,6 +328,7 @@ const saveProduct = async () => {
 			image: form.image,
 			category_id: form.category_id,
 			status: form.status,
+			is_recommend: form.is_recommend ? 1 : 0,
 		});
 		await updateProductSpecs(form.id, buildSpecsPayload());
 
@@ -333,6 +339,7 @@ const saveProduct = async () => {
 			target.price = priceNum;
 			target.image = form.image;
 			target.status = form.status;
+			target.is_recommend = form.is_recommend ? 1 : 0;
 		}
 
 		uni.showToast({ title: '保存成功', icon: 'success' });
@@ -652,6 +659,13 @@ onShow(() => {
 	height: 140rpx;
 	border-radius: 12rpx;
 	background: #eef0f4;
+}
+
+.switch-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 20rpx;
 }
 
 .spec-section {
