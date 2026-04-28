@@ -1,0 +1,1 @@
+{"version":3,"file":"mine.js","sources":["D:/Program Files (x86)/HBuilderX/plugins/uniapp-cli-vite/uniPage:/cGFnZXMvbWluZS9taW5lLnZ1ZQ"],"sourcesContent":["import MiniProgramPage from 'C:/Users/Xulerou/OneDrive/Desktop/毕业论文/徐乐柔 毕业设计/uniapp-tea-starter/pages/mine/mine.vue'\nwx.createPage(MiniProgramPage)"],"names":[],"mappings":";;;;;;;AACA,GAAG,WAAW,eAAe;"}
