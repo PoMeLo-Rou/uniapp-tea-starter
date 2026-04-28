@@ -434,12 +434,25 @@ const _sfc_main = {
                 d: common_vendor.t(product.name),
                 e: common_vendor.t(product.desc),
                 f: common_vendor.t(product.price),
+<<<<<<< HEAD
                 g: getProductCount(product.id)
               }, getProductCount(product.id) ? {
                 h: common_vendor.t(getProductCount(product.id))
               } : {}, {
                 i: common_vendor.o(($event) => openSpecPopup(product), product.id),
                 j: product.id
+=======
+                g: cart.value[product.id]
+              }, cart.value[product.id] ? {
+                h: common_vendor.o(($event) => updateCart(product.id, -1), product.id)
+              } : {}, {
+                i: cart.value[product.id]
+              }, cart.value[product.id] ? {
+                j: common_vendor.t(cart.value[product.id])
+              } : {}, {
+                k: common_vendor.o(($event) => updateCart(product.id, 1), product.id),
+                l: product.id
+>>>>>>> b8ed83c9679b5bee401dea614f4a7fb3e44f8ffb
               });
             }),
             c: cat.id,
