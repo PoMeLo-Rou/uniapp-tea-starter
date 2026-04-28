@@ -120,6 +120,9 @@
 .message.user.data-v-d3c0f1b8 {
   flex-direction: row-reverse;
 }
+.message.user .message-main.data-v-d3c0f1b8 {
+  align-items: flex-end;
+}
 .message.user .bubble.data-v-d3c0f1b8 {
   background: #023993;
   color: #fff;
@@ -131,6 +134,12 @@
   color: #333;
   margin-left: 16rpx;
   margin-right: 80rpx;
+}
+.message-main.data-v-d3c0f1b8 {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 .avatar-wrap.data-v-d3c0f1b8 {
   width: 64rpx;
@@ -156,6 +165,77 @@
   font-size: 28rpx;
   line-height: 1.6;
   word-break: break-all;
+}
+.ai-product-scroll.data-v-d3c0f1b8 {
+  margin-top: 16rpx;
+  margin-left: 16rpx;
+  width: calc(100vw - 128rpx);
+  white-space: nowrap;
+}
+.ai-product-row.data-v-d3c0f1b8 {
+  display: inline-flex;
+  gap: 16rpx;
+  padding-bottom: 6rpx;
+}
+.ai-product-card.data-v-d3c0f1b8 {
+  width: 248rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 14rpx;
+  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+}
+.ai-product-img.data-v-d3c0f1b8 {
+  width: 220rpx;
+  height: 164rpx;
+  border-radius: 12rpx;
+  background: #eef2f7;
+}
+.ai-product-info.data-v-d3c0f1b8 {
+  margin-top: 12rpx;
+}
+.ai-product-name.data-v-d3c0f1b8 {
+  display: block;
+  font-size: 25rpx;
+  font-weight: 700;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-product-desc.data-v-d3c0f1b8 {
+  display: block;
+  margin-top: 6rpx;
+  height: 56rpx;
+  font-size: 21rpx;
+  line-height: 1.35;
+  color: #6b7280;
+  overflow: hidden;
+  white-space: normal;
+}
+.ai-product-bottom.data-v-d3c0f1b8 {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ai-product-price.data-v-d3c0f1b8 {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #023993;
+}
+.ai-add-btn.data-v-d3c0f1b8 {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: #023993;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 44rpx;
 }
 .cursor-blink.data-v-d3c0f1b8 {
   animation: blink-d3c0f1b8 0.8s infinite;

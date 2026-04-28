@@ -14,6 +14,7 @@ const _sfc_main = {
     const showEditor = common_vendor.ref(false);
     const keyword = common_vendor.ref("");
     const selectedCategoryId = common_vendor.ref(0);
+    const selectedSaleStatus = common_vendor.ref("all");
     const categories = common_vendor.ref([]);
     const products = common_vendor.ref([]);
     const form = common_vendor.reactive({
@@ -27,6 +28,11 @@ const _sfc_main = {
       is_recommend: 0
     });
     const specDraft = common_vendor.ref([]);
+    const statusTabs = [
+      { label: "全部", value: "all" },
+      { label: "上架中", value: "on" },
+      { label: "已下架", value: "off" }
+    ];
     const isOnSale = (product) => {
       if (product.status === void 0 || product.status === null)
         return true;
@@ -34,6 +40,19 @@ const _sfc_main = {
         return product.status === 1;
       const status = String(product.status).toLowerCase();
       return status === "1" || status === "on" || status === "onsale" || status === "on_sale" || status === "active";
+    };
+    const normalizeProductList = (payload) => {
+      if (Array.isArray(payload))
+        return payload;
+      if (Array.isArray(payload == null ? void 0 : payload.list))
+        return payload.list;
+      if (Array.isArray(payload == null ? void 0 : payload.rows))
+        return payload.rows;
+      if (Array.isArray(payload == null ? void 0 : payload.records))
+        return payload.records;
+      if (Array.isArray(payload == null ? void 0 : payload.data))
+        return payload.data;
+      return [];
     };
     const normalizeSpecDraft = (groups) => {
       return (groups || []).map((g) => ({
@@ -69,6 +88,10 @@ const _sfc_main = {
         const matchCategory = selectedCategoryId.value === 0 || p.category_id === selectedCategoryId.value;
         if (!matchCategory)
           return false;
+        if (selectedSaleStatus.value === "on" && !isOnSale(p))
+          return false;
+        if (selectedSaleStatus.value === "off" && isOnSale(p))
+          return false;
         if (!key)
           return true;
         return String(p.name || "").toLowerCase().includes(key);
@@ -90,9 +113,12 @@ const _sfc_main = {
     const loadData = async () => {
       loading.value = true;
       try {
-        const [categoryList, productList] = await Promise.all([common_api_product.fetchCategories(), common_api_product.fetchProducts()]);
+        const [categoryList, productList] = await Promise.all([
+          common_api_product.fetchCategories(),
+          common_api_product.fetchAdminProducts()
+        ]);
         categories.value = categoryList || [];
-        products.value = productList || [];
+        products.value = normalizeProductList(productList);
       } catch (e) {
         common_vendor.index.showToast({ title: e.message || "加载失败", icon: "none" });
       } finally {
@@ -164,7 +190,7 @@ const _sfc_main = {
       specDraft.value.splice(idx, 1);
     };
     const goBack = () => {
-      common_vendor.index.switchTab({ url: "/pages/mine/mine" });
+      common_vendor.index.navigateBack();
     };
     const saveProduct = async () => {
       if (!form.id)
@@ -213,7 +239,9 @@ const _sfc_main = {
       loadData();
     });
     common_vendor.onShow(() => {
-      ensureAdminAccess();
+      if (!ensureAdminAccess())
+        return;
+      loadData();
     });
     return (_ctx, _cache) => {
       return common_vendor.e({
@@ -230,7 +258,15 @@ const _sfc_main = {
             d: common_vendor.o(($event) => selectedCategoryId.value = cat.id, cat.id)
           };
         }),
-        g: common_vendor.f(filteredProducts.value, (item, k0, i0) => {
+        g: common_vendor.f(statusTabs, (tab, k0, i0) => {
+          return {
+            a: common_vendor.t(tab.label),
+            b: tab.value,
+            c: selectedSaleStatus.value === tab.value ? 1 : "",
+            d: common_vendor.o(($event) => selectedSaleStatus.value = tab.value, tab.value)
+          };
+        }),
+        h: common_vendor.f(filteredProducts.value, (item, k0, i0) => {
           return {
             a: item.image || defaultImage,
             b: common_vendor.t(item.name),
@@ -244,25 +280,27 @@ const _sfc_main = {
             j: item.id
           };
         }),
-        h: !filteredProducts.value.length
+        i: !filteredProducts.value.length
       }, !filteredProducts.value.length ? {} : {}, {
-        i: showEditor.value
+        j: showEditor.value
       }, showEditor.value ? {
-        j: saving.value,
-        k: common_vendor.o(saveProduct),
-        l: common_vendor.o(closeEditor),
-        m: form.name,
-        n: common_vendor.o(($event) => form.name = $event.detail.value),
-        o: form.desc,
-        p: common_vendor.o(($event) => form.desc = $event.detail.value),
-        q: form.price,
-        r: common_vendor.o(($event) => form.price = $event.detail.value),
-        s: form.image || defaultImage,
-        t: common_vendor.t(uploading.value ? "上传中" : "选择并上传"),
-        v: uploading.value,
-        w: common_vendor.o(chooseAndUploadImage),
-        x: common_vendor.o(addSpecGroup),
-        y: common_vendor.f(specDraft.value, (group, idx, i0) => {
+        k: saving.value,
+        l: common_vendor.o(saveProduct),
+        m: common_vendor.o(closeEditor),
+        n: form.name,
+        o: common_vendor.o(($event) => form.name = $event.detail.value),
+        p: form.desc,
+        q: common_vendor.o(($event) => form.desc = $event.detail.value),
+        r: form.price,
+        s: common_vendor.o(($event) => form.price = $event.detail.value),
+        t: form.is_recommend,
+        v: common_vendor.o(($event) => form.is_recommend = $event.detail.value),
+        w: form.image || defaultImage,
+        x: common_vendor.t(uploading.value ? "上传中" : "选择并上传"),
+        y: uploading.value,
+        z: common_vendor.o(chooseAndUploadImage),
+        A: common_vendor.o(addSpecGroup),
+        B: common_vendor.f(specDraft.value, (group, idx, i0) => {
           return {
             a: group.groupName,
             b: common_vendor.o(($event) => group.groupName = $event.detail.value, idx),
@@ -274,14 +312,14 @@ const _sfc_main = {
             h: idx
           };
         }),
-        z: common_vendor.o(closeEditor),
-        A: saving.value,
-        B: common_vendor.o(saveProduct),
-        C: common_vendor.o(() => {
+        C: common_vendor.o(closeEditor),
+        D: saving.value,
+        E: common_vendor.o(saveProduct),
+        F: common_vendor.o(() => {
         }),
-        D: common_vendor.o(closeEditor)
+        G: common_vendor.o(closeEditor)
       } : {}, {
-        E: common_vendor.unref(safeAreaInsets).top + "px"
+        H: common_vendor.unref(safeAreaInsets).top + "px"
       });
     };
   }

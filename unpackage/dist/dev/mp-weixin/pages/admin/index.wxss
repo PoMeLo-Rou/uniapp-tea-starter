@@ -1,49 +1,237 @@
-
-.page.data-v-9a704506 {
-  min-height: 100%;
-  background: #f7f8fa;
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.admin-page.data-v-9a704506 {
+  min-height: 100vh;
+  background: #f5f7fb;
+  padding: 32rpx 28rpx 40rpx;
+  box-sizing: border-box;
 }
-.header.data-v-9a704506 {
-  padding: 20rpx 20rpx 10rpx;
+.page-header.data-v-9a704506 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 28rpx;
 }
 .back-btn.data-v-9a704506 {
-  padding: 10rpx 16rpx;
-  border-radius: 16rpx;
+  width: 132rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 32rpx;
+  border: none;
   background: #ffffff;
-  color: #333333;
-  border: 1rpx solid #e5e7eb;
+  color: #1f2937;
+  font-size: 28rpx;
+  margin: 0;
+}
+.back-btn.data-v-9a704506::after {
+  border: none;
 }
 .title.data-v-9a704506 {
-  font-size: 32rpx;
-  color: #111111;
-  font-weight: bold;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #111827;
 }
 .header-placeholder.data-v-9a704506 {
-  width: 64rpx;
+  width: 132rpx;
 }
-.content.data-v-9a704506 {
-  padding: 0 20rpx;
+.summary-card.data-v-9a704506 {
+  background: linear-gradient(135deg, #0f3b8f 0%, #0a57d1 100%);
+  border-radius: 28rpx;
+  padding: 32rpx;
+  color: #ffffff;
+  box-shadow: 0 18rpx 36rpx rgba(15, 59, 143, 0.18);
 }
-.admin-card.data-v-9a704506 {
-  margin-top: 20rpx;
-  background: #ffffff;
-  border-radius: 20rpx;
-  padding: 30rpx 24rpx;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.04);
+.summary-top.data-v-9a704506 {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
 }
-.admin-card + .admin-card.data-v-9a704506 {
-  margin-top: 18rpx;
+.summary-title.data-v-9a704506 {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
 }
-.card-title.data-v-9a704506 {
-  font-size: 30rpx;
-  color: #111111;
-  font-weight: bold;
-}
-.card-desc.data-v-9a704506 {
+.summary-desc.data-v-9a704506 {
+  display: block;
   margin-top: 12rpx;
-  color: #666666;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+}
+.summary-btn.data-v-9a704506 {
+  flex-shrink: 0;
+  min-width: 176rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 999rpx;
+  border: none;
+  background: #ffffff;
+  color: #0f3b8f;
+  font-size: 28rpx;
+  font-weight: 600;
+  margin: 0;
+}
+.summary-btn.data-v-9a704506::after {
+  border: none;
+}
+.summary-stats.data-v-9a704506 {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+.stat-item.data-v-9a704506 {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 20rpx;
+  padding: 22rpx 18rpx;
+  text-align: center;
+}
+.stat-num.data-v-9a704506 {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+.stat-num.danger.data-v-9a704506 {
+  color: #ffd6d6;
+}
+.stat-num.success.data-v-9a704506 {
+  color: #d1ffe0;
+}
+.stat-label.data-v-9a704506 {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.78);
+}
+.summary-time.data-v-9a704506 {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.72);
+}
+.alert-card.data-v-9a704506 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  background: #fff6ea;
+  border: 1rpx solid #ffd9aa;
+  border-radius: 22rpx;
+  padding: 22rpx 24rpx;
+  margin-top: 20rpx;
+}
+.alert-text.data-v-9a704506 {
+  flex: 1;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #9a4d00;
+}
+.alert-link.data-v-9a704506 {
+  flex-shrink: 0;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #d97706;
+}
+.menu-list.data-v-9a704506 {
+  margin-top: 24rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 10rpx 24rpx rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+.menu-item.data-v-9a704506 {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 28rpx;
+  border-bottom: 1rpx solid #eef2f7;
+}
+.menu-item.data-v-9a704506:last-child {
+  border-bottom: none;
+}
+.menu-item.highlight.data-v-9a704506 {
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+.item-icon.data-v-9a704506 {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.item-icon.order.data-v-9a704506 {
+  background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+}
+.item-icon.product.data-v-9a704506 {
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+}
+.item-icon.config.data-v-9a704506 {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+.item-content.data-v-9a704506 {
+  flex: 1;
+  margin-left: 22rpx;
+  min-width: 0;
+}
+.item-title-row.data-v-9a704506 {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.item-title.data-v-9a704506 {
+  font-size: 31rpx;
+  font-weight: 600;
+  color: #111827;
+}
+.item-badge.data-v-9a704506 {
+  min-width: 40rpx;
+  height: 40rpx;
+  padding: 0 12rpx;
   line-height: 40rpx;
+  border-radius: 999rpx;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 22rpx;
+  text-align: center;
+}
+.item-desc.data-v-9a704506 {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #6b7280;
+}
+.arrow.data-v-9a704506 {
+  margin-left: 18rpx;
+  font-size: 28rpx;
+  color: #9ca3af;
 }

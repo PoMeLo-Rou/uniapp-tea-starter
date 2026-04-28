@@ -48,7 +48,6 @@
 /* 垂直间距 */
 /* 透明度 */
 /* 文章场景相关 */
-/* 弹窗整体置于 tabBar 之上（小程序 tabBar 层级约 9999） */
 .product-detail-popup-root.data-v-6255fdd0 {
   position: relative;
   z-index: 10001;
@@ -56,7 +55,6 @@
 .data-v-6255fdd0 .uni-popup {
   z-index: 10001 !important;
 }
-/* 统一容器：避免小程序与 H5 宽度/盒模型不一致导致裁切 */
 .spec-container.data-v-6255fdd0 {
   box-sizing: border-box;
   width: 100%;
@@ -72,23 +70,38 @@
   font-weight: bold;
   color: #333;
 }
-.spec-group.data-v-6255fdd0 {
-  margin-bottom: 30rpx;
-  /* 小程序不用负 margin，避免整块不渲染；用右/下 margin 做间距 */
+.empty-spec-tip.data-v-6255fdd0 {
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: #f8fafc;
+  color: #6b7280;
+  font-size: 24rpx;
+  line-height: 1.6;
 }
-.spec-group .label.data-v-6255fdd0 {
-  display: block;
-  font-size: 28rpx;
-  color: #666;
+.spec-group.data-v-6255fdd0 {
+  margin-top: 30rpx;
+}
+.group-head.data-v-6255fdd0 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 16rpx;
 }
-.spec-group .tags.data-v-6255fdd0 {
+.label.data-v-6255fdd0 {
+  font-size: 28rpx;
+  color: #666;
+}
+.group-tip.data-v-6255fdd0 {
+  font-size: 22rpx;
+  color: #023993;
+}
+.tags.data-v-6255fdd0 {
   display: flex;
   flex-wrap: wrap;
   width: 100%;
   min-height: 80rpx;
 }
-.spec-group .spec-tag.data-v-6255fdd0 {
+.spec-tag.data-v-6255fdd0 {
   margin-right: 16rpx;
   margin-bottom: 16rpx;
   padding: 12rpx 24rpx;
@@ -102,18 +115,35 @@
   align-items: center;
   justify-content: center;
 }
-.spec-group .spec-tag text.data-v-6255fdd0 {
+.spec-tag text.data-v-6255fdd0 {
   font-size: 26rpx;
   color: inherit;
 }
-.spec-group .spec-tag.active.data-v-6255fdd0 {
+.spec-tag.active.data-v-6255fdd0 {
   background: #023993;
   color: #fff;
 }
-.spec-group .spec-tag.active text.data-v-6255fdd0 {
+.spec-tag.active text.data-v-6255fdd0 {
   color: #fff;
 }
-/* 小程序 button 默认有边框、padding，需彻底重置以与 H5 一致 */
+.selected-summary.data-v-6255fdd0 {
+  margin-top: 12rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: rgba(2, 57, 147, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+.summary-label.data-v-6255fdd0 {
+  font-size: 24rpx;
+  color: #023993;
+}
+.summary-value.data-v-6255fdd0 {
+  font-size: 26rpx;
+  color: #374151;
+  line-height: 1.6;
+}
 .confirm-btn.data-v-6255fdd0 {
   display: block;
   margin-top: 40rpx;

@@ -29,6 +29,7 @@
 
 <script setup>
 import { computed, watch, ref, nextTick } from 'vue';
+import { formatSpecText } from '@/common/utils/order-spec.js';
 
 const props = defineProps({
   show: Boolean,
@@ -48,7 +49,7 @@ const cartList = computed(() => {
     if (!p) return;
     const count = raw.count ?? 0;
     const specs = raw.specs || {};
-    const specText = [specs.sweet, specs.ice].filter(Boolean).join(' / ');
+    const specText = formatSpecText(specs);
     list.push({
       key,
       id: raw.id,

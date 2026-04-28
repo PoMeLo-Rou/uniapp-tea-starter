@@ -28,9 +28,7 @@
   background-color: #f8f8f8;
   padding: 30rpx;
   padding-bottom: 150rpx;
-  /* 为底部自定义 tabBar 留白 */
   overflow: visible;
-  /* 避免裁剪历史订单抽屉的 fixed 层 */
 }
 .user-section.data-v-7c2ebfa5 {
   display: flex;
@@ -56,6 +54,12 @@
   font-weight: bold;
   display: block;
 }
+.user-section .user-info .meta .username.data-v-7c2ebfa5 {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6b7280;
+}
 .user-section .user-info .meta .level-tag.data-v-7c2ebfa5 {
   font-size: 22rpx;
   color: #fff;
@@ -66,7 +70,8 @@
   display: inline-block;
 }
 .user-section .settings-icon.data-v-7c2ebfa5 {
-  font-size: 40rpx;
+  font-size: 24rpx;
+  color: #6b7280;
 }
 .asset-card.data-v-7c2ebfa5 {
   background-color: #fff;
@@ -117,25 +122,32 @@
   align-items: center;
 }
 .menu-list .menu-item .left .icon.data-v-7c2ebfa5 {
-  margin-right: 20rpx;
-  font-size: 32rpx;
+  min-width: 66rpx;
+  margin-right: 18rpx;
+  font-size: 24rpx;
+  color: #023993;
+  font-weight: 700;
 }
 .menu-list .menu-item .left .text.data-v-7c2ebfa5 {
   font-size: 30rpx;
   color: #333;
 }
 .menu-list .menu-item .arrow.data-v-7c2ebfa5 {
-  color: #ccc;
+  color: #333;
   font-size: 28rpx;
 }
-.logout-btn.data-v-7c2ebfa5 {
+.action-btn.data-v-7c2ebfa5 {
   margin-top: 60rpx;
-  background-color: #fff;
-  color: #ff4d4f;
+  background-color: #023993;
+  color: #fff;
   border-radius: 50rpx;
   font-size: 30rpx;
   border: none;
 }
-.logout-btn.data-v-7c2ebfa5::after {
+.action-btn.data-v-7c2ebfa5::after {
   border: none;
+}
+.action-btn.logout.data-v-7c2ebfa5 {
+  background-color: #fff;
+  color: #ff4d4f;
 }

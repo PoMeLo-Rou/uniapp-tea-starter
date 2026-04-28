@@ -41,6 +41,56 @@
   height: 100rpx;
   margin-bottom: 20rpx;
 }
+.main-actions .action-card .delivery-icon.data-v-c4ecffda {
+  position: relative;
+  box-sizing: border-box;
+}
+.main-actions .action-card .delivery-box.data-v-c4ecffda {
+  position: absolute;
+  left: 12rpx;
+  top: 30rpx;
+  width: 46rpx;
+  height: 34rpx;
+  border-radius: 8rpx;
+  background: #16b8cf;
+  box-shadow: inset 0 -8rpx 0 #0790ac;
+}
+.main-actions .action-card .delivery-box.data-v-c4ecffda::before {
+  content: "";
+  position: absolute;
+  left: 8rpx;
+  top: 8rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #ffe36e;
+  box-shadow: 16rpx 0 0 #ffe36e;
+}
+.main-actions .action-card .delivery-front.data-v-c4ecffda {
+  position: absolute;
+  left: 56rpx;
+  top: 38rpx;
+  width: 26rpx;
+  height: 26rpx;
+  border-radius: 6rpx 12rpx 8rpx 4rpx;
+  background: #f8b400;
+}
+.main-actions .action-card .delivery-wheel.data-v-c4ecffda {
+  position: absolute;
+  top: 62rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #023993;
+  border: 4rpx solid #e5f6fb;
+  box-sizing: border-box;
+}
+.main-actions .action-card .delivery-wheel.left.data-v-c4ecffda {
+  left: 20rpx;
+}
+.main-actions .action-card .delivery-wheel.right.data-v-c4ecffda {
+  left: 64rpx;
+}
 .main-actions .action-card .action-text.data-v-c4ecffda {
   text-align: center;
 }

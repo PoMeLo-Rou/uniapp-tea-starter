@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "森柠",
+  "navigationBarTitleText": "首页",
   "navigationStyle": "custom",
   "usingComponents": {
     "banner-box": "./components/bannerBox",

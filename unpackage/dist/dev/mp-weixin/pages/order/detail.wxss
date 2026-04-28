@@ -92,6 +92,7 @@
 }
 .detail-body.data-v-6b23c96c {
   flex: 1;
+  padding-bottom: 160rpx;
 }
 .status-section.data-v-6b23c96c {
   background: #023993;
@@ -201,4 +202,23 @@
   color: #999;
   display: block;
   margin-top: 4rpx;
+}
+.confirm-btn.data-v-6b23c96c {
+  width: 100%;
+  height: 84rpx;
+  border-radius: 42rpx;
+  background: #023993;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+}
+.fixed-footer.data-v-6b23c96c {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20rpx 24rpx 24rpx;
+  background: #fff;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
 }

@@ -104,12 +104,19 @@ $theme-color: #023993;
 			}
 
 			.add-btn {
+				width: 40rpx;
+				height: 40rpx;
+				min-width: 40rpx;
+				line-height: 40rpx;
 				float: right;
 				background: $theme-color;
 				color: #fff;
 				border-radius: 50%;
-				padding: 0 15rpx;
+				padding: 0;
 				border: none;
+				font-size: 28rpx;
+				font-weight: 700;
+				text-align: center;
 
 				&::after {
 					border: none;

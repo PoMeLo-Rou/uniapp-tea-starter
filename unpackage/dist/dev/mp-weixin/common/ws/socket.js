@@ -137,8 +137,16 @@ class SocketManager {
   }
   // 取消监听
   off(type, callback) {
-    if (this.listeners.has(type))
-      this.listeners.get(type).delete(callback);
+    if (!this.listeners.has(type))
+      return;
+    if (!callback) {
+      this.listeners.delete(type);
+      return;
+    }
+    this.listeners.get(type).delete(callback);
+    if (this.listeners.get(type).size === 0) {
+      this.listeners.delete(type);
+    }
   }
   // 分发消息给监听者
   _emit(type, data) {
@@ -163,14 +171,14 @@ class SocketManager {
   // 断线重连：指数退避（1s, 2s, 4s, 8s... 最大30s）
   _scheduleReconnect() {
     if (this.reconnectCount >= this.maxReconnect) {
-      common_vendor.index.__f__("log", "at common/ws/socket.js:174", "[WS] 达到最大重连次数，停止重连");
+      common_vendor.index.__f__("log", "at common/ws/socket.js:182", "[WS] 达到最大重连次数，停止重连");
       return;
     }
     if (this.reconnectTimer)
       return;
     const delay = Math.min(1e3 * Math.pow(2, this.reconnectCount), 3e4);
     this.reconnectCount++;
-    common_vendor.index.__f__("log", "at common/ws/socket.js:181", `[WS] ${delay / 1e3}s 后尝试第 ${this.reconnectCount} 次重连...`);
+    common_vendor.index.__f__("log", "at common/ws/socket.js:189", `[WS] ${delay / 1e3}s 后尝试第 ${this.reconnectCount} 次重连...`);
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       this.connect(this._userId);

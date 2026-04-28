@@ -32,71 +32,179 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
+import { useMemberStore } from '@/stores/modules/member.js';
+
 import bannerBox from './components/bannerBox.vue';
 import memberCard from './components/memberCard.vue';
 import mainAction from './components/mainAction.vue';
 import CustomTabBar from '@/components/custom-tab-bar.vue';
 import AiChat from '@/components/AiChat.vue';
-import { fetchRecommendProducts } from '@/common/api/product.js';
+import { fetchProducts, fetchRecommendProducts } from '@/common/api/product.js';
+import { fetchOrderDetail, fetchOrderList } from '@/common/api/order.js';
 import { fetchSiteConfig } from '@/common/api/site.js';
 import { normalizeImageUrl } from '@/common/api/request.js';
 
-// 轮播图数据（空则使用 bannerBox 内部默认图）
-const bannerData = ref([
-	'https://images.unsplash.com/photo-1544787210-2211d44b565a?w=800',
-	'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=800',
-]);
+const memberStore = useMemberStore();
+const bannerData = ref([]);
+const recommendList = ref([]);
+const MIN_HISTORY_ITEM_COUNT = 2;
+const RECOMMEND_LIMIT = 8;
 
-// 静态模拟数据（后期通过后端接口获取），id 与点餐页商品对应便于跳转后打开规格弹窗
-const recommendList = ref([
-	{ id: 101, name: '多肉葡萄', price: 28, image: '/static/logo.png' },
-	{ id: 102, name: '芝芝茗茶', price: 19, image: '/static/logo.png' },
-	{ id: 201, name: '烤黑糖波波', price: 22, image: '/static/logo.png' },
-]);
+const normalizeList = (payload) => {
+	if (Array.isArray(payload)) return payload;
+	if (Array.isArray(payload?.list)) return payload.list;
+	if (Array.isArray(payload?.rows)) return payload.rows;
+	if (Array.isArray(payload?.records)) return payload.records;
+	if (Array.isArray(payload?.data)) return payload.data;
+	if (payload?.data && typeof payload.data === 'object') return normalizeList(payload.data);
+	return [];
+};
+
+const toRecommendItem = (item = {}) => ({
+	id: item.id || item.productId || item.product_id,
+	name: item.name || item.productName || item.product_name || '',
+	price: item.price || 0,
+	image: item.image || '/static/logo.png',
+});
+
+const isProductOnSale = (product) => {
+	if (product?.status === undefined || product?.status === null) return true;
+	if (typeof product.status === 'number') return product.status === 1;
+	return ['1', 'on', 'onsale', 'on_sale', 'active'].includes(String(product.status).toLowerCase());
+};
+
+const tokenize = (value) =>
+	String(value || '')
+		.toLowerCase()
+		.split(/[^a-z0-9\u4e00-\u9fa5]+/i)
+		.map((item) => item.trim())
+		.filter((item) => item.length >= 2);
+
+const getOrderItems = (order = {}) => {
+	if (order?.data && typeof order.data === 'object') return getOrderItems(order.data);
+	const source = order.items || order.orderItems || order.products || order.details || order.order_details || order.productList || [];
+	if (Array.isArray(source)) return source;
+	if (typeof source === 'string') {
+		try {
+			return JSON.parse(source);
+		} catch (_) {
+			return [];
+		}
+	}
+	return [];
+};
+
+const loadHistoryItems = async () => {
+	if (!memberStore.isLoggedIn || !memberStore.userId) return [];
+	const orderPayload = await fetchOrderList({ userId: memberStore.userId });
+	const orders = normalizeList(orderPayload).slice(0, 10);
+	const detailList = await Promise.all(
+		orders.map(async (order) => {
+			const id = order.id || order.orderId || order.order_id;
+			if (!id || getOrderItems(order).length) return order;
+			try {
+				return await fetchOrderDetail(id);
+			} catch (_) {
+				return order;
+			}
+		}),
+	);
+	return detailList.flatMap(getOrderItems);
+};
+
+const buildPersonalizedRecommend = (products, historyItems) => {
+	if (historyItems.length < MIN_HISTORY_ITEM_COUNT) return [];
+	const productById = new Map(products.map((item) => [String(item.id), item]));
+	const purchasedIds = new Set();
+	const categoryScore = new Map();
+	const tokenScore = new Map();
+
+	historyItems.forEach((item) => {
+		const id = item.id || item.productId || item.product_id;
+		const product = productById.get(String(id)) || products.find((p) => p.name === item.name || p.name === item.productName);
+		const count = Math.max(1, Number(item.count || item.quantity || 1));
+		if (product?.id) purchasedIds.add(String(product.id));
+		if (product?.category_id) categoryScore.set(product.category_id, (categoryScore.get(product.category_id) || 0) + count * 3);
+		tokenize([product?.name, product?.desc, product?.tag, item.spec].join(' ')).forEach((token) => {
+			tokenScore.set(token, (tokenScore.get(token) || 0) + count);
+		});
+	});
+
+	return products
+		.filter((item) => item.id && isProductOnSale(item) && !purchasedIds.has(String(item.id)))
+		.map((item) => {
+			let score = categoryScore.get(item.category_id) || 0;
+			tokenize([item.name, item.desc, item.tag].join(' ')).forEach((token) => {
+				score += tokenScore.get(token) || 0;
+			});
+			return { ...item, score };
+		})
+		.filter((item) => item.score > 0)
+		.sort((a, b) => b.score - a.score)
+		.slice(0, RECOMMEND_LIMIT)
+		.map(toRecommendItem);
+};
+
+const loadDefaultRecommend = async () => normalizeList(await fetchRecommendProducts()).map(toRecommendItem);
+
+const loadRecommendProducts = async () => {
+	try {
+		const [allProducts, historyItems] = await Promise.all([fetchProducts(), loadHistoryItems()]);
+		const personalized = buildPersonalizedRecommend(normalizeList(allProducts), historyItems);
+		if (personalized.length) return personalized;
+	} catch (error) {
+		console.warn('[home] personalized recommend fallback:', error);
+	}
+	return loadDefaultRecommend();
+};
 
 const loadHomeData = async () => {
 	try {
-		const [siteConfig, recommendProducts] = await Promise.all([
-			fetchSiteConfig(),
-			fetchRecommendProducts(),
-		]);
+		const [siteConfig, products] = await Promise.all([fetchSiteConfig(), loadRecommendProducts()]);
 		if (Array.isArray(siteConfig?.homeBanners) && siteConfig.homeBanners.length) {
 			bannerData.value = siteConfig.homeBanners;
 		}
-		if (Array.isArray(recommendProducts) && recommendProducts.length) {
-			recommendList.value = recommendProducts.map((item) => ({
-				id: item.id,
-				name: item.name,
-				price: item.price,
-				image: item.image || '/static/logo.png',
-			}));
-		}
+		recommendList.value = products;
 	} catch (e) {
-		// 保底使用本地默认数据，不阻塞页面展示
+		console.error('load home data failed:', e);
+		uni.showToast({ title: '数据加载异常', icon: 'none' });
 	}
 };
 
-// 跳转到点单页 (因为是 TabBar 页面，需使用 switchTab)
+const refreshUserInfo = () => {
+	if (memberStore.isLoggedIn && typeof memberStore.fetchUserInfo === 'function') {
+		memberStore.fetchUserInfo();
+	}
+};
+
 const goToOrder = () => {
 	uni.switchTab({
 		url: '/pages/order/order',
 	});
 };
 
-// 点击推荐位：进入点餐页并打开该商品的规格弹窗
 const onRecommendClick = (item) => {
+	if (!item?.id) return;
+	uni.setStorageSync('pendingOpenSpecProductId', item.id);
 	uni.switchTab({
 		url: '/pages/order/order',
 		success: () => {
 			setTimeout(() => {
 				uni.$emit('openSpec', { productId: item.id });
-			}, 300);
+			}, 450);
 		},
 	});
 };
 
 onMounted(() => {
 	loadHomeData();
+	refreshUserInfo();
+});
+
+onShow(() => {
+	loadHomeData();
+	refreshUserInfo();
 });
 </script>
 
@@ -159,11 +267,18 @@ onMounted(() => {
 
 			.add-btn {
 				float: right;
+				width: 48rpx;
+				height: 48rpx;
+				min-width: 48rpx;
+				line-height: 48rpx;
 				background: $uni-color-primary;
 				color: #fff;
 				border-radius: 50%;
-				padding: 0 15rpx;
+				padding: 0;
 				border: none;
+				font-size: 32rpx;
+				font-weight: 700;
+				text-align: center;
 
 				&::after {
 					border: none;

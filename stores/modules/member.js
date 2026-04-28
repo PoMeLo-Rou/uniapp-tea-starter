@@ -9,7 +9,7 @@ export const useMemberStore = defineStore(
 		const ADMIN_USER_ID_WHITELIST = []
 
 		const userId = ref(null)
-		const openid = ref('')
+		const username = ref('')
 		const nickname = ref('')
 		const avatar = ref('')
 		const phone = ref('')
@@ -37,8 +37,8 @@ export const useMemberStore = defineStore(
 
 		function setUserInfo(data) {
 			userId.value = data.userId || data.id || null
-			openid.value = data.openid || ''
-			nickname.value = data.nickname || ''
+			username.value = data.username || data.account || ''
+			nickname.value = data.nickname || data.nickName || username.value || ''
 			avatar.value = data.avatar || ''
 			phone.value = data.phone || ''
 			points.value = Number(data.points || 0)
@@ -71,7 +71,7 @@ export const useMemberStore = defineStore(
 
 		function clearUserInfo() {
 			userId.value = null
-			openid.value = ''
+			username.value = ''
 			nickname.value = ''
 			avatar.value = ''
 			phone.value = ''
@@ -85,7 +85,7 @@ export const useMemberStore = defineStore(
 
 		return {
 			userId,
-			openid,
+			username,
 			nickname,
 			avatar,
 			phone,
@@ -101,7 +101,13 @@ export const useMemberStore = defineStore(
 			clearUserInfo,
 		}
 	},
-	{
-		persist: { key: 'member' },
+	{    // 指定小程序兼容的存储方式
+		persist: {
+            key: 'member',
+            storage: {
+                getItem: (key) => uni.getStorageSync(key),
+                setItem: (key, value) => uni.setStorageSync(key, value),
+            },
+		}, 
 	},
 )

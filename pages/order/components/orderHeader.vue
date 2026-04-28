@@ -1,6 +1,6 @@
 <template>
 	<view class="header" :style="{ paddingTop: safeAreaInsets.top + 'px' }">
-		<!-- 顶部模式切换：到店取 / 喜外送 -->
+		<!-- 顶部模式切换：到店取 / 外送 -->
 		<view class="mode-toggle">
 			<view
 				class="mode-item"
@@ -15,7 +15,7 @@
 				:class="{ active: mode === 'delivery' }"
 				@click="setMode('delivery')"
 			>
-				<text>喜外送</text>
+				<text>外送</text>
 			</view>
 		</view>
 

@@ -2,39 +2,57 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const common_vendor = require("./common/vendor.js");
 const common_ws_socket = require("./common/ws/socket.js");
+const stores_modules_member = require("./stores/modules/member.js");
 const stores_index = require("./stores/index.js");
 const stores_modules_loading = require("./stores/modules/loading.js");
 if (!Math) {
   "./pages/index/index.js";
   "./pages/order/order.js";
   "./pages/mine/mine.js";
+  "./pages/login/login.js";
   "./pages/checkout/checkout.js";
   "./pages/order/detail.js";
   "./pages/admin/index.js";
+  "./pages/admin/order-manage.js";
   "./pages/admin/product-manage.js";
   "./pages/admin/site-manage.js";
 }
+const handleOrderStatusMessage = (msg = {}) => {
+  var _a;
+  const nextStatus = msg.newStatus || msg.status || ((_a = msg == null ? void 0 : msg.data) == null ? void 0 : _a.status) || "";
+  common_vendor.index.$emit("order:status-changed", {
+    ...msg,
+    status: nextStatus
+  });
+  common_vendor.index.showToast({
+    title: msg.message || "订单状态已更新",
+    icon: "none",
+    duration: 3e3
+  });
+};
 const _sfc_main = {
-  onLaunch: function() {
-    common_vendor.index.__f__("log", "at App.vue:6", "App Launch");
+  onLaunch() {
+    this.initLoginStatus();
   },
-  onShow: function() {
-    common_vendor.index.__f__("log", "at App.vue:9", "App Show");
-    const memberRaw = common_vendor.index.getStorageSync("member");
-    if (memberRaw && memberRaw.userId) {
-      common_ws_socket.socketManager.connect(memberRaw.userId);
-      common_ws_socket.socketManager.on("order_status", (msg) => {
-        common_vendor.index.__f__("log", "at App.vue:17", "[WS] 收到订单推送:", msg);
-        common_vendor.index.showToast({
-          title: msg.message,
-          icon: "none",
-          duration: 3e3
-        });
-      });
+  onShow() {
+    this.checkAndConnectSocket();
+  },
+  methods: {
+    initLoginStatus() {
+      const member = common_vendor.index.getStorageSync("member");
+      if (!member)
+        return;
+      const memberStore = stores_modules_member.useMemberStore();
+      memberStore.setUserInfo(member);
+    },
+    checkAndConnectSocket() {
+      const member = common_vendor.index.getStorageSync("member");
+      if (!(member == null ? void 0 : member.userId))
+        return;
+      common_ws_socket.socketManager.connect(member.userId);
+      common_ws_socket.socketManager.off("order_status", handleOrderStatusMessage);
+      common_ws_socket.socketManager.on("order_status", handleOrderStatusMessage);
     }
-  },
-  onHide: function() {
-    common_vendor.index.__f__("log", "at App.vue:27", "App Hide");
   }
 };
 function createApp() {

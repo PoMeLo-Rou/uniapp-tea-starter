@@ -1,21 +1,28 @@
 import { httpRequest } from './request.js';
 
-// 微信登录
-export const wxLogin = ({ code, nickName, avatarUrl }) => {
+const JSON_HEADER = { 'Content-Type': 'application/json' };
+
+export const loginByPassword = ({ username, password }) => {
 	return httpRequest({
-		url: '/api/auth/wx-login',
+		url: '/api/auth/login',
 		method: 'POST',
-		header: { 'Content-Type': 'application/json' },
-		data: { code, nickName, avatarUrl },
+		header: JSON_HEADER,
+		data: { username, password },
 	});
 };
 
-// 微信手机号登录（自动注册 / 登录）
-export const wxPhoneLogin = ({ code, phoneCode, encryptedData, iv, nickName, avatarUrl }) => {
+export const registerByPassword = ({ username, password, nickname }) => {
 	return httpRequest({
-		url: '/api/auth/wx-phone-login',
+		url: '/api/auth/register',
 		method: 'POST',
-		header: { 'Content-Type': 'application/json' },
-		data: { code, phoneCode, encryptedData, iv, nickName, avatarUrl },
+		header: JSON_HEADER,
+		data: { username, password, nickname },
+	});
+};
+
+export const fetchCurrentUser = () => {
+	return httpRequest({
+		url: '/api/auth/me',
+		method: 'GET',
 	});
 };

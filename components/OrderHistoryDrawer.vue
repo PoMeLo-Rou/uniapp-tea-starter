@@ -4,14 +4,14 @@
 		<view class="drawer-panel" :class="{ 'panel-show': panelVisible }">
 			<view class="drawer-header" :style="{ paddingTop: safeAreaInsets.top + 'px' }">
 				<view class="drawer-close" @click="close">
-				<text>‹</text>
-			</view>
+					<text>‹</text>
+				</view>
 				<text class="drawer-title">历史订单</text>
 			</view>
 			<scroll-view scroll-y class="drawer-body">
 				<view
-					v-for="(order, index) in orderList"
-					:key="order.order_no"
+					v-for="order in orderList"
+					:key="order.id || order.order_no"
 					class="order-row"
 					@click="goDetail(order)"
 				>
@@ -21,11 +21,11 @@
 					</view>
 					<view class="order-row-mid">
 						<text class="order-store">{{ order.store_name }}</text>
-						<text class="order-type">{{ order.order_type === 'delivery' ? '外带' : '堂食' }}</text>
+						<text class="order-type">{{ order.order_type === 'delivery' ? '外卖配送' : '到店自取' }}</text>
 					</view>
 					<view class="order-row-bottom">
 						<text class="order-time">{{ formatTime(order.created_at) }}</text>
-						<text class="order-price">¥{{ order.total_amount }}</text>
+						<text class="order-price">¥{{ formatAmount(order.total_amount) }}</text>
 					</view>
 				</view>
 				<view v-if="orderList.length === 0" class="empty-tip">暂无订单</view>
@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { fetchOrderList } from '@/common/api/order.js';
 import { useMemberStore } from '@/stores/modules/member.js';
 
@@ -50,15 +50,42 @@ const safeAreaInsets = (() => {
 	try {
 		const sys = uni.getSystemInfoSync();
 		return sys.safeAreaInsets || { top: 0, bottom: 0, left: 0, right: 0 };
-	} catch (e) {
+	} catch (_) {
 		return { top: 0, bottom: 0, left: 0, right: 0 };
 	}
 })();
+
 const orderList = ref([]);
 const panelVisible = ref(false);
 const closeTimer = ref(null);
 
-async function loadHistory() {
+const statusMap = {
+	pending: '待支付',
+	paid: '已支付',
+	making: '制作中',
+	ready: '待取餐',
+	finished: '已完成',
+	cancelled: '已取消',
+};
+
+const statusText = (status) => statusMap[status] || status;
+
+const formatTime = (value) => {
+	if (!value) return '--';
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return '--';
+	const pad = (part) => String(part).padStart(2, '0');
+	return `${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(
+		date.getMinutes(),
+	)}`;
+};
+
+const formatAmount = (value) => {
+	const amount = Number(value);
+	return Number.isFinite(amount) ? amount.toFixed(2) : '0.00';
+};
+
+const loadHistory = async () => {
 	try {
 		const memberStore = useMemberStore();
 		if (!memberStore.userId) {
@@ -66,52 +93,58 @@ async function loadHistory() {
 			uni.showToast({ title: '请先登录', icon: 'none' });
 			return;
 		}
+
 		const list = await fetchOrderList({ userId: memberStore.userId });
-		orderList.value = Array.isArray(list) ? list : [];
-	} catch (e) {
+		orderList.value = Array.isArray(list) ? list : list?.list || list?.rows || [];
+	} catch (_) {
 		orderList.value = [];
 	}
-}
+};
 
-const statusMap = { pending: '待支付', paid: '已支付', making: '制作中', ready: '待取杯', finished: '已完成', cancelled: '已取消' };
-const statusText = (s) => statusMap[s] || s;
-
-function formatTime(ts) {
-	if (!ts) return '';
-	const d = new Date(ts);
-	const m = d.getMonth() + 1;
-	const day = d.getDate();
-	const h = d.getHours();
-	const min = d.getMinutes();
-	return `${m}/${day} ${h}:${min < 10 ? '0' + min : min}`;
-}
-
-function close() {
+const close = () => {
 	panelVisible.value = false;
 	if (closeTimer.value) clearTimeout(closeTimer.value);
 	closeTimer.value = setTimeout(() => {
 		emit('update:show', false);
 		closeTimer.value = null;
 	}, 320);
-}
+};
 
-function goDetail(order) {
-	uni.navigateTo({ url: '/pages/order/detail?id=' + order.id });
+const goDetail = (order) => {
+	const targetId = order.id || order.orderId || order.order_id;
+	if (!targetId) return;
+	uni.navigateTo({ url: `/pages/order/detail?id=${targetId}` });
 	close();
-}
+};
 
-watch(() => props.show, (val) => {
-	if (val) {
-		loadHistory();
+const handleOrderStatusChanged = () => {
+	if (!props.show) return;
+	loadHistory();
+};
+
+watch(
+	() => props.show,
+	(value) => {
+		if (value) {
+			loadHistory();
+			panelVisible.value = false;
+			nextTick(() => {
+				setTimeout(() => {
+					panelVisible.value = true;
+				}, 30);
+			});
+			return;
+		}
 		panelVisible.value = false;
-		nextTick(() => {
-			setTimeout(() => {
-				panelVisible.value = true;
-			}, 30);
-		});
-	} else {
-		panelVisible.value = false;
-	}
+	},
+);
+
+onMounted(() => {
+	uni.$on('order:status-changed', handleOrderStatusChanged);
+});
+
+onUnmounted(() => {
+	uni.$off('order:status-changed', handleOrderStatusChanged);
 });
 </script>
 
@@ -134,6 +167,7 @@ watch(() => props.show, (val) => {
 	background: rgba(0, 0, 0, 0);
 	transition: background 0.25s ease;
 }
+
 .drawer-mask.mask-show {
 	background: rgba(0, 0, 0, 0.4);
 }
@@ -153,6 +187,7 @@ watch(() => props.show, (val) => {
 	flex-direction: column;
 	overflow: hidden;
 }
+
 .drawer-panel.panel-show {
 	transform: translateX(0);
 	-webkit-transform: translateX(0);
@@ -166,8 +201,18 @@ watch(() => props.show, (val) => {
 	border-bottom: 1rpx solid #eee;
 	flex-shrink: 0;
 }
-.drawer-title { font-size: 34rpx; font-weight: 600; color: #333; }
-.drawer-close { font-size: 36rpx; color: #999; padding: 10rpx; }
+
+.drawer-title {
+	font-size: 34rpx;
+	font-weight: 600;
+	color: #333;
+}
+
+.drawer-close {
+	font-size: 36rpx;
+	color: #999;
+	padding: 10rpx;
+}
 
 .drawer-body {
 	flex: 1;
@@ -182,12 +227,14 @@ watch(() => props.show, (val) => {
 	border-bottom: 1rpx solid #f0f0f0;
 	overflow: hidden;
 }
+
 .order-row-top {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 8rpx;
 }
+
 .order-no {
 	font-size: 26rpx;
 	color: #666;
@@ -197,21 +244,48 @@ watch(() => props.show, (val) => {
 	white-space: nowrap;
 	margin-right: 16rpx;
 }
-.order-status { font-size: 24rpx; color: #023993; font-weight: 500; flex-shrink: 0; }
+
+.order-status {
+	font-size: 24rpx;
+	color: #023993;
+	font-weight: 500;
+	flex-shrink: 0;
+}
+
 .order-row-mid {
 	display: flex;
 	justify-content: space-between;
 	margin-bottom: 8rpx;
 }
-.order-store { font-size: 28rpx; color: #333; }
-.order-type { font-size: 24rpx; color: #999; flex-shrink: 0; }
+
+.order-store {
+	font-size: 28rpx;
+	color: #333;
+}
+
+.order-type {
+	font-size: 24rpx;
+	color: #999;
+	flex-shrink: 0;
+}
+
 .order-row-bottom {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 }
-.order-time { font-size: 24rpx; color: #999; }
-.order-price { font-size: 28rpx; font-weight: 600; color: #333; flex-shrink: 0; }
+
+.order-time {
+	font-size: 24rpx;
+	color: #999;
+}
+
+.order-price {
+	font-size: 28rpx;
+	font-weight: 600;
+	color: #333;
+	flex-shrink: 0;
+}
 
 .empty-tip {
 	padding: 80rpx 0;

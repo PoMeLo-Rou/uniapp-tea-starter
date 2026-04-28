@@ -15,14 +15,38 @@ const _sfc_main = {
       try {
         const sys = common_vendor.index.getSystemInfoSync();
         return sys.safeAreaInsets || { top: 0, bottom: 0, left: 0, right: 0 };
-      } catch (e) {
+      } catch (_) {
         return { top: 0, bottom: 0, left: 0, right: 0 };
       }
     })();
     const orderList = common_vendor.ref([]);
     const panelVisible = common_vendor.ref(false);
     const closeTimer = common_vendor.ref(null);
-    async function loadHistory() {
+    const statusMap = {
+      pending: "待支付",
+      paid: "已支付",
+      making: "制作中",
+      ready: "待取餐",
+      finished: "已完成",
+      cancelled: "已取消"
+    };
+    const statusText = (status) => statusMap[status] || status;
+    const formatTime = (value) => {
+      if (!value)
+        return "--";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime()))
+        return "--";
+      const pad = (part) => String(part).padStart(2, "0");
+      return `${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(
+        date.getMinutes()
+      )}`;
+    };
+    const formatAmount = (value) => {
+      const amount = Number(value);
+      return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
+    };
+    const loadHistory = async () => {
       try {
         const memberStore = stores_modules_member.useMemberStore();
         if (!memberStore.userId) {
@@ -31,24 +55,12 @@ const _sfc_main = {
           return;
         }
         const list = await common_api_order.fetchOrderList({ userId: memberStore.userId });
-        orderList.value = Array.isArray(list) ? list : [];
-      } catch (e) {
+        orderList.value = Array.isArray(list) ? list : (list == null ? void 0 : list.list) || (list == null ? void 0 : list.rows) || [];
+      } catch (_) {
         orderList.value = [];
       }
-    }
-    const statusMap = { pending: "待支付", paid: "已支付", making: "制作中", ready: "待取杯", finished: "已完成", cancelled: "已取消" };
-    const statusText = (s) => statusMap[s] || s;
-    function formatTime(ts) {
-      if (!ts)
-        return "";
-      const d = new Date(ts);
-      const m = d.getMonth() + 1;
-      const day = d.getDate();
-      const h = d.getHours();
-      const min = d.getMinutes();
-      return `${m}/${day} ${h}:${min < 10 ? "0" + min : min}`;
-    }
-    function close() {
+    };
+    const close = () => {
       panelVisible.value = false;
       if (closeTimer.value)
         clearTimeout(closeTimer.value);
@@ -56,23 +68,40 @@ const _sfc_main = {
         emit("update:show", false);
         closeTimer.value = null;
       }, 320);
-    }
-    function goDetail(order) {
+    };
+    const goDetail = (order) => {
+      const targetId = order.id || order.orderId || order.order_id;
+      if (!targetId)
+        return;
+      common_vendor.index.navigateTo({ url: `/pages/order/detail?id=${targetId}` });
       close();
-      common_vendor.index.navigateTo({ url: "/pages/order/detail?id=" + order.id });
-    }
-    common_vendor.watch(() => props.show, (val) => {
-      if (val) {
-        loadHistory();
-        panelVisible.value = false;
-        common_vendor.nextTick$1(() => {
-          setTimeout(() => {
-            panelVisible.value = true;
-          }, 30);
-        });
-      } else {
+    };
+    const handleOrderStatusChanged = () => {
+      if (!props.show)
+        return;
+      loadHistory();
+    };
+    common_vendor.watch(
+      () => props.show,
+      (value) => {
+        if (value) {
+          loadHistory();
+          panelVisible.value = false;
+          common_vendor.nextTick$1(() => {
+            setTimeout(() => {
+              panelVisible.value = true;
+            }, 30);
+          });
+          return;
+        }
         panelVisible.value = false;
       }
+    );
+    common_vendor.onMounted(() => {
+      common_vendor.index.$on("order:status-changed", handleOrderStatusChanged);
+    });
+    common_vendor.onUnmounted(() => {
+      common_vendor.index.$off("order:status-changed", handleOrderStatusChanged);
     });
     return (_ctx, _cache) => {
       return common_vendor.e({
@@ -82,16 +111,16 @@ const _sfc_main = {
         c: common_vendor.o(close),
         d: common_vendor.o(close),
         e: common_vendor.unref(safeAreaInsets).top + "px",
-        f: common_vendor.f(orderList.value, (order, index, i0) => {
+        f: common_vendor.f(orderList.value, (order, k0, i0) => {
           return {
             a: common_vendor.t(order.order_no),
             b: common_vendor.t(statusText(order.status)),
             c: common_vendor.t(order.store_name),
-            d: common_vendor.t(order.order_type === "delivery" ? "外带" : "堂食"),
+            d: common_vendor.t(order.order_type === "delivery" ? "外卖配送" : "到店自取"),
             e: common_vendor.t(formatTime(order.created_at)),
-            f: common_vendor.t(order.total_amount),
-            g: order.order_no,
-            h: common_vendor.o(($event) => goDetail(order), order.order_no)
+            f: common_vendor.t(formatAmount(order.total_amount)),
+            g: order.id || order.order_no,
+            h: common_vendor.o(($event) => goDetail(order), order.id || order.order_no)
           };
         }),
         g: orderList.value.length === 0

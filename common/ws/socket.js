@@ -144,7 +144,15 @@ class SocketManager {
 
   // 取消监听
   off(type, callback) {
-    if (this.listeners.has(type)) this.listeners.get(type).delete(callback);
+    if (!this.listeners.has(type)) return;
+    if (!callback) {
+      this.listeners.delete(type);
+      return;
+    }
+    this.listeners.get(type).delete(callback);
+    if (this.listeners.get(type).size === 0) {
+      this.listeners.delete(type);
+    }
   }
 
   // 分发消息给监听者

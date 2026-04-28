@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("../../../common/vendor.js");
+const common_utils_orderSpec = require("../../../common/utils/order-spec.js");
 if (!Array) {
   const _easycom_uni_popup2 = common_vendor.resolveComponent("uni-popup");
   _easycom_uni_popup2();
@@ -31,7 +32,7 @@ const _sfc_main = {
           return;
         const count = raw.count ?? 0;
         const specs = raw.specs || {};
-        const specText = [specs.sweet, specs.ice].filter(Boolean).join(" / ");
+        const specText = common_utils_orderSpec.formatSpecText(specs);
         list.push({
           key,
           id: raw.id,

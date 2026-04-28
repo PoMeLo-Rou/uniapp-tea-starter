@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "订单",
+  "navigationBarTitleText": "点单",
   "navigationStyle": "custom",
   "usingComponents": {
     "order-header": "./components/orderHeader",

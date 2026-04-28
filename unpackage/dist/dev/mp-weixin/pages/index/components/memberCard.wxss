@@ -33,9 +33,16 @@
   align-items: center;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
+.member-bar.data-v-b5ccad09:active {
+  opacity: 0.9;
+}
 .member-bar .welcome.data-v-b5ccad09 {
   font-size: 32rpx;
   font-weight: bold;
+  max-width: 300rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .member-bar .level.data-v-b5ccad09 {
   font-size: 24rpx;
@@ -44,6 +51,8 @@
 }
 .member-bar .level .icon.data-v-b5ccad09 {
   margin-right: 6rpx;
+  color: #023993;
+  font-weight: 700;
 }
 .member-bar .points.data-v-b5ccad09 {
   text-align: right;

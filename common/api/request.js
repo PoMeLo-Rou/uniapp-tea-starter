@@ -1,21 +1,8 @@
-/**
- * 添加拦截器:
- *   拦截 request 请求
- *   拦截 uploadFile 文件上传
- *
- *   1. 非 http 开头需拼接地址
- *   2. 请求超时
- *   3. 添加小程序端请求头标识
- *   4. 添加 token 请求头标识
- */
-
-// 【小程序必改】微信开发者工具里 localhost 连不通，请改成你电脑的本机 IP（在 cmd 输入 ipconfig 查看 IPv4）
-const MINI_DEV_BASE = 'http://172.20.10.1:8080'; // 例：192.168.10.229，端口与后端一致
+const MINI_DEV_BASE = 'http://localhost:8080';
 
 function getApiBaseUrl() {
 	if (typeof process !== 'undefined' && process.env) {
 		if (process.env.VUE_APP_API_BASE) return process.env.VUE_APP_API_BASE;
-		// 小程序开发环境不能使用 localhost，否则会请求超时
 		if (process.env.NODE_ENV === 'development') return MINI_DEV_BASE;
 		return 'https://your-prod-domain.com';
 	}
@@ -41,25 +28,21 @@ export const normalizeImageUrl = (url) => {
 			return parsed.toString();
 		}
 		return url;
-	} catch (e) {
+	} catch (_) {
 		return url;
 	}
 };
 
 const httpInterceptor = {
 	invoke(options) {
-		// 1. 非 http 开头需拼接地址
 		if (!options.url.startsWith('http')) {
 			options.url = getApiBaseUrl() + options.url;
 		}
-		// 2. 请求超时，默认 10 秒
 		options.timeout = 10000;
-		// 3. 添加小程序端请求头标识
 		options.header = {
 			'source-client': 'miniapp',
 			...options.header,
 		};
-		// 4. 添加 token 请求头标识
 		const token = uni.getStorageSync('token');
 		if (token) {
 			options.header.Authorization = token;
@@ -70,9 +53,6 @@ const httpInterceptor = {
 uni.addInterceptor('request', httpInterceptor);
 uni.addInterceptor('uploadFile', httpInterceptor);
 
-/**
- * 通用请求封装 —— Promise 化 uni.request 并统一处理响应状态
- */
 export const httpRequest = (options) => {
 	return new Promise((resolve, reject) => {
 		uni.request({
@@ -80,16 +60,83 @@ export const httpRequest = (options) => {
 			success: (res) => {
 				if (res.statusCode >= 200 && res.statusCode < 300) {
 					resolve(res.data);
-				} else if (res.statusCode === 401) {
-					uni.navigateTo({ url: '/pages/login/login' });
-					reject(new Error(res.data?.message || '请先登录'));
-				} else {
-					reject(new Error(res.data?.message || `请求失败 (${res.statusCode})`));
+					return;
 				}
+
+				if (res.statusCode === 401) {
+					if (shouldRedirectToLogin(options, res)) {
+						uni.navigateTo({ url: '/pages/login/login' });
+					}
+					reject(createHttpError(res, options, '登录状态已失效，请重新登录'));
+					return;
+				}
+
+				reject(createHttpError(res, options));
 			},
 			fail: (err) => {
-				reject(new Error(err.errMsg || '网络错误'));
+				const error = new Error(err.errMsg || '网络连接失败，请检查后端服务是否启动');
+				error.errMsg = err.errMsg || '';
+				error.url = options.url || '';
+				reject(error);
 			},
 		});
 	});
 };
+
+function shouldRedirectToLogin(options = {}, res = {}) {
+	const url = String(options.url || '');
+	const data = normalizeErrorData(res.data);
+	const code = String(data?.code || data?.errorCode || '').toUpperCase();
+
+	if (url.includes('/api/auth/login') || url.includes('/api/auth/register')) {
+		return false;
+	}
+	if (code.includes('PASSWORD_ERROR') || code.includes('BAD_CREDENTIALS')) {
+		return false;
+	}
+
+	const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : [];
+	const current = pages[pages.length - 1];
+	const route = `/${current?.route || ''}`;
+	return route !== '/pages/login/login';
+}
+
+function createHttpError(res, options = {}, fallbackMessage = '') {
+	const data = normalizeErrorData(res.data);
+	const message =
+		data?.message ||
+		data?.msg ||
+		data?.error ||
+		data?.detail ||
+		fallbackMessage ||
+		`请求失败 (${res.statusCode})`;
+	const error = new Error(String(message));
+	error.statusCode = res.statusCode;
+	error.data = data;
+	error.rawData = res.data;
+	error.url = options.url || '';
+	return error;
+}
+
+function normalizeErrorData(data) {
+	if (!data) return {};
+	if (typeof data === 'object') return data;
+	const text = String(data);
+	try {
+		return JSON.parse(text);
+	} catch (_) {
+		return {
+			message: extractHtmlErrorText(text) || text,
+			rawText: text,
+		};
+	}
+}
+
+function extractHtmlErrorText(text) {
+	const content = text.match(/<pre>([\s\S]*?)<\/pre>/i)?.[1] || text.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1];
+	if (!content) return '';
+	return content
+		.replace(/<[^>]*>/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+}

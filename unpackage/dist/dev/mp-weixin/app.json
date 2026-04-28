@@ -3,9 +3,11 @@
     "pages/index/index",
     "pages/order/order",
     "pages/mine/mine",
+    "pages/login/login",
     "pages/checkout/checkout",
     "pages/order/detail",
     "pages/admin/index",
+    "pages/admin/order-manage",
     "pages/admin/product-manage",
     "pages/admin/site-manage"
   ],
@@ -18,13 +20,13 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "点单",
+        "text": "首页",
         "iconPath": "/static/index.png",
         "selectedIconPath": "/static/index-selected.png"
       },
       {
         "pagePath": "pages/order/order",
-        "text": "订单",
+        "text": "点单",
         "iconPath": "/static/order.png",
         "selectedIconPath": "/static/order-selected.png"
       },

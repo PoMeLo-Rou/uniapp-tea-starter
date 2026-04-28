@@ -5,7 +5,7 @@ const useMemberStore = common_vendor.defineStore(
   () => {
     const ADMIN_USER_ID_WHITELIST = [];
     const userId = common_vendor.ref(null);
-    const openid = common_vendor.ref("");
+    const username = common_vendor.ref("");
     const nickname = common_vendor.ref("");
     const avatar = common_vendor.ref("");
     const phone = common_vendor.ref("");
@@ -32,8 +32,8 @@ const useMemberStore = common_vendor.defineStore(
     });
     function setUserInfo(data) {
       userId.value = data.userId || data.id || null;
-      openid.value = data.openid || "";
-      nickname.value = data.nickname || "";
+      username.value = data.username || data.account || "";
+      nickname.value = data.nickname || data.nickName || username.value || "";
       avatar.value = data.avatar || "";
       phone.value = data.phone || "";
       points.value = Number(data.points || 0);
@@ -52,7 +52,7 @@ const useMemberStore = common_vendor.defineStore(
     }
     function clearUserInfo() {
       userId.value = null;
-      openid.value = "";
+      username.value = "";
       nickname.value = "";
       avatar.value = "";
       phone.value = "";
@@ -65,7 +65,7 @@ const useMemberStore = common_vendor.defineStore(
     }
     return {
       userId,
-      openid,
+      username,
       nickname,
       avatar,
       phone,
@@ -82,7 +82,14 @@ const useMemberStore = common_vendor.defineStore(
     };
   },
   {
-    persist: { key: "member" }
+    // 指定小程序兼容的存储方式
+    persist: {
+      key: "member",
+      storage: {
+        getItem: (key) => common_vendor.index.getStorageSync(key),
+        setItem: (key, value) => common_vendor.index.setStorageSync(key, value)
+      }
+    }
   }
 );
 exports.useMemberStore = useMemberStore;

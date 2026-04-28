@@ -6,49 +6,36 @@
 					<text class="spec-title">{{ selectedProd.name }}</text>
 				</view>
 
-				<!-- 甜度（从接口 sweet 分组读取） -->
-				<view v-if="sweetGroup" class="spec-group">
-					<text class="label">{{ sweetGroup.groupName }}</text>
+				<view v-if="displayGroups.length === 0" class="empty-spec-tip">
+					<text>当前商品没有绑定规格，确认后会直接加入购物车</text>
+				</view>
+
+				<view
+					v-for="group in displayGroups"
+					v-if="displayGroups.length > 0"
+					:key="group.groupKey"
+					v-show="isGroupVisible(group)"
+					class="spec-group"
+				>
+					<view class="group-head">
+						<text class="label">{{ group.groupName }}</text>
+						<text v-if="group.selectionType === 'multi'" class="group-tip">可多选</text>
+					</view>
 					<view class="tags">
 						<view
-							v-for="opt in sweetGroup.options"
-							:key="'sweet-' + opt.id"
-							:class="'spec-tag' + (currentSweetId === opt.id ? ' active' : '')"
-							@click="setSweet(opt)"
+							v-for="opt in group.options"
+							:key="`${group.groupKey}-${opt.id}`"
+							:class="['spec-tag', isOptionSelected(group, opt) ? 'active' : '']"
+							@click="toggleOption(group, opt)"
 						>
 							<text>{{ opt.name }}</text>
 						</view>
 					</view>
 				</view>
 
-				<!-- 温度（冰 / 常温 / 热） -->
-				<view v-if="tempGroup" class="spec-group">
-					<text class="label">{{ tempGroup.groupName }}</text>
-					<view class="tags">
-						<view
-							v-for="opt in tempGroup.options"
-							:key="'temp-' + opt.id"
-							:class="'spec-tag' + (currentTempId === opt.id ? ' active' : '')"
-							@click="setTemp(opt)"
-						>
-							<text>{{ opt.name }}</text>
-						</view>
-					</view>
-				</view>
-
-				<!-- 冰度：只有当选择了“冰”(temp_cold) 时才显示 -->
-				<view v-if="iceGroup && showIceGroup" class="spec-group">
-					<text class="label">{{ iceGroup.groupName }}</text>
-					<view class="tags">
-						<view
-							v-for="opt in iceGroup.options"
-							:key="'ice-' + opt.id"
-							:class="'spec-tag' + (currentIceId === opt.id ? ' active' : '')"
-							@click="setIce(opt)"
-						>
-							<text>{{ opt.name }}</text>
-						</view>
-					</view>
+				<view v-if="selectedAddonNames.length" class="selected-summary">
+					<text class="summary-label">已选小料</text>
+					<text class="summary-value">{{ selectedAddonNames.join(' / ') }}</text>
 				</view>
 
 				<button class="confirm-btn" @click="addToCart">加入购物车</button>
@@ -58,121 +45,322 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { fetchProductSpecs } from '@/common/api/product.js';
+import {
+	isAddonGroupCode,
+	normalizeOrderSpecs,
+	normalizeSpecCode,
+} from '@/common/utils/order-spec.js';
 
 const emit = defineEmits(['confirm']);
 
-const popupRef = ref(null);
-const selectedProd = reactive({ id: null, name: '', price: 0 });
-
-// 后端返回的所有规格分组
-const specGroups = ref([]);
-
-// 当前选中的规格 id
-const currentSweetId = ref(null);
-const currentTempId = ref(null);
-const currentIceId = ref(null);
-
-// 分组快捷访问
-const sweetGroup = computed(() =>
-	specGroups.value.find((g) => g.groupCode === 'sweet') || null,
-);
-const tempGroup = computed(() =>
-	specGroups.value.find((g) => g.groupCode === 'temp') || null,
-);
-const iceGroup = computed(() =>
-	specGroups.value.find((g) => g.groupCode === 'ice') || null,
-);
-
-// 根据 id 找到当前选中的选项
-const currentSweetOption = computed(() => {
-	const g = sweetGroup.value;
-	if (!g) return null;
-	return g.options.find((o) => o.id === currentSweetId.value) || null;
-});
-const currentTempOption = computed(() => {
-	const g = tempGroup.value;
-	if (!g) return null;
-	return g.options.find((o) => o.id === currentTempId.value) || null;
-});
-const currentIceOption = computed(() => {
-	const g = iceGroup.value;
-	if (!g) return null;
-	return g.options.find((o) => o.id === currentIceId.value) || null;
-});
-
-// 是否显示冰度分组：当温度选择为“冰”(code === 'temp_cold') 时才显示
-const showIceGroup = computed(() => {
-	const temp = currentTempOption.value;
-	if (!iceGroup.value || !temp) return false;
-	return temp.code === 'temp_cold';
-});
-
-const setSweet = (opt) => {
-	if (!opt) return;
-	currentSweetId.value = opt.id;
+const GROUP_ORDER = {
+	size: 10,
+	sweet: 20,
+	temp: 30,
+	ice: 40,
+	addon: 50,
+	addons: 50,
+	topping: 50,
+	toppings: 50,
+	extra: 60,
+	extras: 60,
 };
 
-const setTemp = (opt) => {
-	if (!opt) return;
-	currentTempId.value = opt.id;
+const popupRef = ref(null);
+const selectedProd = reactive({ id: null, name: '', price: 0 });
+const specGroups = ref([]);
+const selectedSingleMap = ref({});
+const selectedMultiMap = ref({});
+const pendingPresetSpecs = ref(null);
 
-	// 如果不是“冰”，则清空冰度选项并隐藏
-	if (opt.code !== 'temp_cold') {
-		currentIceId.value = null;
-	} else if (iceGroup.value && iceGroup.value.options.length > 0 && !currentIceId.value) {
-		// 重新切回“冰”时，如果还没选冰度，默认第一个
-		currentIceId.value = iceGroup.value.options[0].id;
+const normalizeName = (value) =>
+	String(value || '')
+		.trim()
+		.toLowerCase()
+		.replace(/\s+/g, '');
+
+const isColdOption = (option) => {
+	if (!option) return false;
+	if (normalizeSpecCode(option.code) === 'temp_cold') return true;
+	return normalizeName(option.name).includes('冰');
+};
+
+const normalizeOption = (option, index) => ({
+	id: option?.id ?? `${option?.code || 'opt'}-${index}`,
+	code: option?.code || '',
+	name: String(option?.name || '').trim(),
+});
+
+const normalizeGroup = (group, index) => {
+	const normalizedCode = normalizeSpecCode(group?.groupCode);
+	return {
+		id: group?.id ?? null,
+		groupName: String(group?.groupName || '规格').trim(),
+		groupCode: group?.groupCode || '',
+		normalizedCode,
+		groupKey: group?.id ? `group-${group.id}` : `${normalizedCode || 'group'}-${index}`,
+		selectionType: isAddonGroupCode(normalizedCode) ? 'multi' : 'single',
+		options: (Array.isArray(group?.options) ? group.options : [])
+			.map((option, optionIndex) => normalizeOption(option, optionIndex))
+			.filter((option) => option.name),
+	};
+};
+
+const sortGroups = (groups) =>
+	groups.slice().sort((left, right) => {
+		const leftWeight = GROUP_ORDER[left.normalizedCode] ?? 100;
+		const rightWeight = GROUP_ORDER[right.normalizedCode] ?? 100;
+		if (leftWeight !== rightWeight) return leftWeight - rightWeight;
+		return left.groupName.localeCompare(right.groupName);
+	});
+
+const displayGroups = computed(() => specGroups.value);
+const tempGroup = computed(() =>
+	displayGroups.value.find((group) => group.normalizedCode === 'temp') || null,
+);
+const iceGroup = computed(() =>
+	displayGroups.value.find((group) => group.normalizedCode === 'ice') || null,
+);
+
+const getSelectedSingleOption = (group) => {
+	if (!group) return null;
+	const selectedId = selectedSingleMap.value[group.groupKey];
+	return group.options.find((option) => option.id === selectedId) || null;
+};
+
+const getSelectedMultiOptions = (group) => {
+	if (!group) return [];
+	const selectedIds = selectedMultiMap.value[group.groupKey] || [];
+	return group.options.filter((option) => selectedIds.includes(option.id));
+};
+
+const currentTempOption = computed(() => getSelectedSingleOption(tempGroup.value));
+const currentIceOption = computed(() => getSelectedSingleOption(iceGroup.value));
+const showIceGroup = computed(() => {
+	if (!iceGroup.value) return false;
+	if (!tempGroup.value) return true;
+	return isColdOption(currentTempOption.value);
+});
+
+const selectedAddonNames = computed(() => {
+	return displayGroups.value
+		.filter((group) => group.selectionType === 'multi')
+		.flatMap((group) => getSelectedMultiOptions(group).map((option) => option.name));
+});
+
+const resetSelections = () => {
+	const nextSingleMap = {};
+	const nextMultiMap = {};
+
+	displayGroups.value.forEach((group) => {
+		if (group.selectionType === 'multi') {
+			nextMultiMap[group.groupKey] = [];
+			return;
+		}
+
+		if (group.normalizedCode === 'ice') {
+			nextSingleMap[group.groupKey] = null;
+			return;
+		}
+
+		if (!group.options.length) {
+			nextSingleMap[group.groupKey] = null;
+			return;
+		}
+
+		if (group.normalizedCode === 'temp') {
+			const coldOption = group.options.find((option) => isColdOption(option));
+			nextSingleMap[group.groupKey] = (coldOption || group.options[0]).id;
+			return;
+		}
+
+		nextSingleMap[group.groupKey] = group.options[0].id;
+	});
+
+	selectedSingleMap.value = nextSingleMap;
+	selectedMultiMap.value = nextMultiMap;
+	syncIceSelection();
+};
+
+const syncIceSelection = () => {
+	const group = iceGroup.value;
+	if (!group) return;
+
+	const nextSingleMap = { ...selectedSingleMap.value };
+	if (!showIceGroup.value) {
+		nextSingleMap[group.groupKey] = null;
+	} else if (!nextSingleMap[group.groupKey]) {
+		nextSingleMap[group.groupKey] = group.options[0]?.id || null;
+	}
+	selectedSingleMap.value = nextSingleMap;
+};
+
+const isGroupVisible = (group) => group.normalizedCode !== 'ice' || showIceGroup.value;
+
+const isOptionSelected = (group, option) => {
+	if (group.selectionType === 'multi') {
+		return (selectedMultiMap.value[group.groupKey] || []).includes(option.id);
+	}
+	return selectedSingleMap.value[group.groupKey] === option.id;
+};
+
+const selectSingleOption = (group, option) => {
+	selectedSingleMap.value = {
+		...selectedSingleMap.value,
+		[group.groupKey]: option.id,
+	};
+
+	if (group.normalizedCode === 'temp') {
+		syncIceSelection();
 	}
 };
 
-const setIce = (opt) => {
-	if (!opt) return;
-	currentIceId.value = opt.id;
+const toggleMultiOption = (group, option) => {
+	const currentIds = selectedMultiMap.value[group.groupKey] || [];
+	const nextIds = currentIds.includes(option.id)
+		? currentIds.filter((id) => id !== option.id)
+		: [...currentIds, option.id];
+
+	selectedMultiMap.value = {
+		...selectedMultiMap.value,
+		[group.groupKey]: nextIds,
+	};
+};
+
+const toggleOption = (group, option) => {
+	if (!option) return;
+	if (group.selectionType === 'multi') {
+		toggleMultiOption(group, option);
+		return;
+	}
+	selectSingleOption(group, option);
+};
+
+const matchOptionByValue = (group, targetValue) => {
+	if (!group || !targetValue) return null;
+	const normalizedTarget = normalizeName(targetValue);
+	return (
+		group.options.find((option) => normalizeName(option.name) === normalizedTarget) ||
+		group.options.find((option) => normalizeName(option.code) === normalizedTarget) ||
+		group.options.find((option) => normalizeName(option.name).includes(normalizedTarget)) ||
+		null
+	);
+};
+
+const getPresetSelectionValue = (group, preset) => {
+	if (!group || !preset) return '';
+
+	switch (group.normalizedCode) {
+		case 'size':
+			return preset.size;
+		case 'sweet':
+			return preset.sweet;
+		case 'temp':
+			if (preset.temp) return preset.temp;
+			if (preset.ice && group.options.some((option) => isColdOption(option))) {
+				return group.options.find((option) => isColdOption(option))?.name || '';
+			}
+			return '';
+		case 'ice':
+			return preset.ice;
+		default: {
+			const selection = preset.selections.find((item) => {
+				if (item.groupId && group.id) {
+					return String(item.groupId) === String(group.id);
+				}
+				return normalizeSpecCode(item.groupCode) === group.normalizedCode;
+			});
+			return Array.isArray(selection?.value) ? selection.value[0] || '' : selection?.value || '';
+		}
+	}
+};
+
+const getPresetMultiValues = (group, preset) => {
+	if (!group || !preset) return [];
+	const values = [];
+
+	if (isAddonGroupCode(group.normalizedCode)) {
+		values.push(...preset.addons);
+	}
+
+	const selection = preset.selections.find((item) => {
+		if (item.groupId && group.id) {
+			return String(item.groupId) === String(group.id);
+		}
+		return normalizeSpecCode(item.groupCode) === group.normalizedCode;
+	});
+	if (selection) {
+		values.push(...(Array.isArray(selection.value) ? selection.value : [selection.value]));
+	}
+
+	return values.filter(Boolean);
+};
+
+const applyPresetSelections = (rawPreset) => {
+	const preset = normalizeOrderSpecs(rawPreset);
+	if (!displayGroups.value.length) return;
+
+	const nextSingleMap = { ...selectedSingleMap.value };
+	displayGroups.value.forEach((group) => {
+		if (group.selectionType === 'multi' || group.normalizedCode === 'ice') return;
+		const matched = matchOptionByValue(group, getPresetSelectionValue(group, preset));
+		if (matched) {
+			nextSingleMap[group.groupKey] = matched.id;
+		}
+	});
+	selectedSingleMap.value = nextSingleMap;
+	syncIceSelection();
+
+	if (iceGroup.value && showIceGroup.value) {
+		const matchedIce = matchOptionByValue(iceGroup.value, getPresetSelectionValue(iceGroup.value, preset));
+		if (matchedIce) {
+			selectedSingleMap.value = {
+				...selectedSingleMap.value,
+				[iceGroup.value.groupKey]: matchedIce.id,
+			};
+		}
+	}
+
+	const nextMultiMap = { ...selectedMultiMap.value };
+	displayGroups.value.forEach((group) => {
+		if (group.selectionType !== 'multi') return;
+		const targetValues = getPresetMultiValues(group, preset);
+		nextMultiMap[group.groupKey] = group.options
+			.filter((option) => targetValues.some((value) => matchOptionByValue(group, value)?.id === option.id))
+			.map((option) => option.id);
+	});
+	selectedMultiMap.value = nextMultiMap;
 };
 
 const fetchSpecs = async (productId) => {
 	if (!productId) return;
 	try {
 		const data = await fetchProductSpecs(productId);
-		specGroups.value = data || [];
-
-		// 默认选中每个分组的第一个选项
-		const s = sweetGroup.value;
-		currentSweetId.value = s && s.options.length ? s.options[0].id : null;
-
-		const t = tempGroup.value;
-		if (t && t.options.length) {
-			// 优先选中“冰”
-			const cold = t.options.find((o) => o.code === 'temp_cold');
-			currentTempId.value = (cold || t.options[0]).id;
-		} else {
-			currentTempId.value = null;
+		specGroups.value = sortGroups(
+			(data || [])
+				.map((group, index) => normalizeGroup(group, index))
+				.filter((group) => group.options.length),
+		);
+		resetSelections();
+		if (pendingPresetSpecs.value) {
+			applyPresetSelections(pendingPresetSpecs.value);
 		}
-
-		const i = iceGroup.value;
-		if (i && i.options.length && showIceGroup.value) {
-			currentIceId.value = i.options[0].id;
-		} else {
-			currentIceId.value = null;
-		}
-	} catch (err) {
-		console.error('fetch specs error:', err);
+	} catch (error) {
+		console.error('fetch specs error:', error);
 		specGroups.value = [];
-		currentSweetId.value = null;
-		currentTempId.value = null;
-		currentIceId.value = null;
+		selectedSingleMap.value = {};
+		selectedMultiMap.value = {};
 	}
 };
 
-const open = (product) => {
+const open = (product, presetSpecs = null) => {
 	if (!product) return;
 	selectedProd.id = product.id;
 	selectedProd.name = product.name || '';
 	selectedProd.price = product.price ?? 0;
-
-	// 打开弹窗并拉取规格
+	pendingPresetSpecs.value = presetSpecs ? normalizeOrderSpecs(presetSpecs) : null;
 	popupRef.value?.open();
 	fetchSpecs(product.id);
 };
@@ -181,31 +369,59 @@ const close = () => {
 	popupRef.value?.close();
 };
 
-const addToCart = () => {
-	const sweetText = currentSweetOption.value?.name || '';
+const buildSelections = () => {
+	return displayGroups.value
+		.filter((group) => isGroupVisible(group))
+		.map((group) => {
+			if (group.selectionType === 'multi') {
+				const values = getSelectedMultiOptions(group).map((option) => option.name);
+				if (!values.length) return null;
+				return {
+					groupId: group.id,
+					groupCode: group.normalizedCode,
+					groupName: group.groupName,
+					value: values,
+				};
+			}
 
-	// 组合“温度/冰度”的展示文字，保持与原先 specs.ice 字段兼容
-	let iceText = '';
+			const option = getSelectedSingleOption(group);
+			if (!option) return null;
+			return {
+				groupId: group.id,
+				groupCode: group.normalizedCode,
+				groupName: group.groupName,
+				value: option.name,
+			};
+		})
+		.filter(Boolean);
+};
+
+const getTemperatureText = () => {
 	const temp = currentTempOption.value;
-	const ice = currentIceOption.value;
-
-	if (temp) {
-		if (temp.code === 'temp_cold') {
-			// 冰：只展示冰度（多冰/少冰/去冰等），如果没选冰度就展示“冰”
-			iceText = ice?.name || temp.name;
-		} else {
-			// 常温 / 热：直接展示温度
-			iceText = temp.name;
-		}
-	} else if (ice) {
-		iceText = ice.name;
+	if (!temp) return '';
+	if (isColdOption(temp)) {
+		return currentIceOption.value?.name || temp.name;
 	}
+	return temp.name;
+};
+
+const addToCart = () => {
+	const selections = buildSelections();
+	const findSelectionValue = (code) => {
+		const selection = selections.find((item) => item.groupCode === code);
+		if (!selection) return '';
+		return Array.isArray(selection.value) ? selection.value[0] || '' : selection.value;
+	};
 
 	emit('confirm', {
 		id: selectedProd.id,
 		specs: {
-			sweet: sweetText,
-			ice: iceText,
+			size: findSelectionValue('size'),
+			sweet: findSelectionValue('sweet'),
+			temp: findSelectionValue('temp'),
+			ice: getTemperatureText(),
+			addons: selectedAddonNames.value,
+			selections,
 		},
 	});
 	close();
@@ -217,16 +433,15 @@ defineExpose({ open, close });
 <style lang="scss" scoped>
 @import '@/uni.scss';
 
-/* 弹窗整体置于 tabBar 之上（小程序 tabBar 层级约 9999） */
 .product-detail-popup-root {
 	position: relative;
 	z-index: 10001;
 }
+
 :deep(.uni-popup) {
 	z-index: 10001 !important;
 }
 
-/* 统一容器：避免小程序与 H5 宽度/盒模型不一致导致裁切 */
 .spec-container {
 	box-sizing: border-box;
 	width: 100%;
@@ -245,53 +460,93 @@ defineExpose({ open, close });
 	}
 }
 
-.spec-group {
-	margin-bottom: 30rpx;
-
-	.label {
-		display: block;
-		font-size: 28rpx;
-		color: #666;
-		margin-bottom: 16rpx;
-	}
-
-	/* 小程序不用负 margin，避免整块不渲染；用右/下 margin 做间距 */
-	.tags {
-		display: flex;
-		flex-wrap: wrap;
-		width: 100%;
-		min-height: 80rpx;
-	}
-
-	.spec-tag {
-		margin-right: 16rpx;
-		margin-bottom: 16rpx;
-		padding: 12rpx 24rpx;
-		min-height: 56rpx;
-		font-size: 26rpx;
-		color: #666;
-		background: #f5f5f5;
-		border-radius: 8rpx;
-		box-sizing: border-box;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.spec-tag text {
-		font-size: 26rpx;
-		color: inherit;
-	}
-
-	.spec-tag.active {
-		background: $uni-color-primary;
-		color: #fff;
-	}
-	.spec-tag.active text {
-		color: #fff;
-	}
+.empty-spec-tip {
+	padding: 20rpx 24rpx;
+	border-radius: 16rpx;
+	background: #f8fafc;
+	color: #6b7280;
+	font-size: 24rpx;
+	line-height: 1.6;
 }
 
-/* 小程序 button 默认有边框、padding，需彻底重置以与 H5 一致 */
+.spec-group {
+	margin-top: 30rpx;
+}
+
+.group-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 16rpx;
+}
+
+.label {
+	font-size: 28rpx;
+	color: #666;
+}
+
+.group-tip {
+	font-size: 22rpx;
+	color: $uni-color-primary;
+}
+
+.tags {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+	min-height: 80rpx;
+}
+
+.spec-tag {
+	margin-right: 16rpx;
+	margin-bottom: 16rpx;
+	padding: 12rpx 24rpx;
+	min-height: 56rpx;
+	font-size: 26rpx;
+	color: #666;
+	background: #f5f5f5;
+	border-radius: 8rpx;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.spec-tag text {
+	font-size: 26rpx;
+	color: inherit;
+}
+
+.spec-tag.active {
+	background: $uni-color-primary;
+	color: #fff;
+}
+
+.spec-tag.active text {
+	color: #fff;
+}
+
+.selected-summary {
+	margin-top: 12rpx;
+	padding: 20rpx 24rpx;
+	border-radius: 16rpx;
+	background: rgba($uni-color-primary, 0.08);
+	display: flex;
+	flex-direction: column;
+	gap: 10rpx;
+}
+
+.summary-label {
+	font-size: 24rpx;
+	color: $uni-color-primary;
+}
+
+.summary-value {
+	font-size: 26rpx;
+	color: #374151;
+	line-height: 1.6;
+}
+
 .confirm-btn {
 	display: block;
 	margin-top: 40rpx;

@@ -21,6 +21,17 @@
 						</view>
 					</view>
 				</scroll-view>
+				<view class="status-filter">
+					<view
+						v-for="tab in statusTabs"
+						:key="tab.value"
+						class="status-item"
+						:class="{ active: selectedSaleStatus === tab.value }"
+						@click="selectedSaleStatus = tab.value"
+					>
+						{{ tab.label }}
+					</view>
+				</view>
 			</view>
 		</view>
 
@@ -74,30 +85,34 @@
 						<text class="label">价格</text>
 						<input v-model="form.price" class="input" type="digit" placeholder="请输入价格" />
 					</view>
-			<view class="form-item switch-item">
-				<text class="label">首页推荐</text>
-				<switch v-model="form.is_recommend" color="#023993" />
-			</view>
-			<view class="form-item">
-				<text class="label">商品图</text>
-				<view class="upload-row">
-					<image :src="form.image || defaultImage" class="preview" mode="aspectFill" />
-					<button class="mini-btn primary" :loading="uploading" @click="chooseAndUploadImage">
-						{{ uploading ? '上传中' : '选择并上传' }}
-					</button>
-				</view>
+					<view class="form-item switch-item">
+						<text class="label">首页推荐</text>
+						<switch :checked="form.is_recommend" @change="form.is_recommend = $event.detail.value" color="#023993" />
+					</view>
+					<view class="form-item">
+						<text class="label">商品图</text>
+						<view class="upload-row">
+							<image :src="form.image || defaultImage" class="preview" mode="aspectFill" />
+							<button class="mini-btn primary" :loading="uploading" @click="chooseAndUploadImage">
+								{{ uploading ? '上传中' : '选择并上传' }}
+							</button>
+						</view>
+					</view>
 
 					<view class="spec-section">
 						<view class="spec-head">
 							<text class="label">规格分组</text>
 							<button class="mini-btn ghost" @click="addSpecGroup">新增分组</button>
 						</view>
+						<text class="spec-tip">
+							groupCode 约定：size=杯型，sweet=甜度，temp=温度，ice=冰度，addon/topping=绑定小料（多选）；如果小料不绑定饮品，可以直接作为独立商品上架。
+						</text>
 						<view v-for="(group, idx) in specDraft" :key="idx" class="spec-card">
 							<view class="spec-row">
 								<input v-model="group.groupName" class="input" placeholder="分组名称，如 甜度" />
-								<input v-model="group.groupCode" class="input" placeholder="分组编码，如 sweet" />
+								<input v-model="group.groupCode" class="input" placeholder="分组编码，如 sweet / size / addon" />
 							</view>
-							<textarea v-model="group.optionsText" class="textarea" placeholder="选项用逗号分隔，如 全糖,半糖,少糖" />
+							<textarea v-model="group.optionsText" class="textarea" placeholder="选项用逗号分隔，如 全糖,半糖,少糖 或 珍珠,椰果" />
 							<view class="remove-wrap">
 								<button class="mini-btn danger" @click="removeSpecGroup(idx)">删除分组</button>
 							</view>
@@ -121,7 +136,7 @@ import { computed, reactive, ref } from 'vue';
 import { onLoad, onShow } from '@dcloudio/uni-app';
 import {
 	fetchCategories,
-	fetchProducts,
+	fetchAdminProducts,
 	fetchProductSpecs,
 	updateProduct,
 	updateProductStatus,
@@ -139,6 +154,7 @@ const uploading = ref(false);
 const showEditor = ref(false);
 const keyword = ref('');
 const selectedCategoryId = ref(0);
+const selectedSaleStatus = ref('all');
 
 const categories = ref([]);
 const products = ref([]);
@@ -155,12 +171,26 @@ const form = reactive({
 });
 
 const specDraft = ref([]);
+const statusTabs = [
+	{ label: '\u5168\u90e8', value: 'all' },
+	{ label: '\u4e0a\u67b6\u4e2d', value: 'on' },
+	{ label: '\u5df2\u4e0b\u67b6', value: 'off' },
+];
 
 const isOnSale = (product) => {
 	if (product.status === undefined || product.status === null) return true;
 	if (typeof product.status === 'number') return product.status === 1;
 	const status = String(product.status).toLowerCase();
 	return status === '1' || status === 'on' || status === 'onsale' || status === 'on_sale' || status === 'active';
+};
+
+const normalizeProductList = (payload) => {
+	if (Array.isArray(payload)) return payload;
+	if (Array.isArray(payload?.list)) return payload.list;
+	if (Array.isArray(payload?.rows)) return payload.rows;
+	if (Array.isArray(payload?.records)) return payload.records;
+	if (Array.isArray(payload?.data)) return payload.data;
+	return [];
 };
 
 const normalizeSpecDraft = (groups) => {
@@ -203,6 +233,8 @@ const filteredProducts = computed(() => {
 	return products.value.filter((p) => {
 		const matchCategory = selectedCategoryId.value === 0 || p.category_id === selectedCategoryId.value;
 		if (!matchCategory) return false;
+		if (selectedSaleStatus.value === 'on' && !isOnSale(p)) return false;
+		if (selectedSaleStatus.value === 'off' && isOnSale(p)) return false;
 		if (!key) return true;
 		return String(p.name || '').toLowerCase().includes(key);
 	});
@@ -225,9 +257,12 @@ const ensureAdminAccess = () => {
 const loadData = async () => {
 	loading.value = true;
 	try {
-		const [categoryList, productList] = await Promise.all([fetchCategories(), fetchProducts()]);
+		const [categoryList, productList] = await Promise.all([
+			fetchCategories(),
+			fetchAdminProducts(),
+		]);
 		categories.value = categoryList || [];
-		products.value = productList || [];
+		products.value = normalizeProductList(productList);
 	} catch (e) {
 		uni.showToast({ title: e.message || '加载失败', icon: 'none' });
 	} finally {
@@ -305,7 +340,7 @@ const removeSpecGroup = (idx) => {
 };
 
 const goBack = () => {
-	uni.switchTab({ url: '/pages/mine/mine' });
+	uni.navigateBack();
 };
 
 const saveProduct = async () => {
@@ -357,7 +392,8 @@ onLoad(() => {
 });
 
 onShow(() => {
-	ensureAdminAccess();
+	if (!ensureAdminAccess()) return;
+	loadData();
 });
 </script>
 
@@ -413,7 +449,7 @@ onShow(() => {
 	color: #111827;
 	font-size: 24rpx;
 	padding: 0;
-
+	margin:0;
 	&::after {
 		border: none;
 	}
@@ -442,6 +478,13 @@ onShow(() => {
 	gap: 16rpx;
 }
 
+.status-filter {
+	display: flex;
+	gap: 16rpx;
+	flex-wrap: wrap;
+	margin-top: 16rpx;
+}
+
 .category-item {
 	padding: 10rpx 22rpx;
 	background: #f3f4f6;
@@ -452,6 +495,21 @@ onShow(() => {
 	&.active {
 		background: #023993;
 		color: #fff;
+	}
+}
+
+.status-item {
+	padding: 10rpx 22rpx;
+	background: #f8fafc;
+	color: #6b7280;
+	border-radius: 999rpx;
+	font-size: 24rpx;
+	border: 1rpx solid #e5e7eb;
+
+	&.active {
+		background: #111827;
+		color: #fff;
+		border-color: #111827;
 	}
 }
 
@@ -676,6 +734,14 @@ onShow(() => {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+}
+
+.spec-tip {
+	display: block;
+	margin-top: 12rpx;
+	font-size: 22rpx;
+	line-height: 1.7;
+	color: #6b7280;
 }
 
 .spec-card {
